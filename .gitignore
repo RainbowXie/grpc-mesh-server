@@ -1,0 +1,39 @@
+# Binaries
+grpc-mesh-server
+*.exe
+
+# Build artifacts
+/bin/
+/pkg/
+
+# Configuration (keep examples)
+config/config.yaml
+config/tls/*.key
+config/tls/*.crt
+config/tls/*.pem
+!config/config.example.yaml
+
+# Tokens
+*.token
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage.out
+*.test
+
+# Go
+go.work
+go.work.sum
