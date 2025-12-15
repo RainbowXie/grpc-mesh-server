@@ -57,7 +57,13 @@ func (d *Dialer) DialPeer(ctx context.Context, peerID registry.PeerID) (*grpc.Cl
 
 	// Create connection
 	// Use "passthrough:///" as target since we're using custom dialer
-	return grpc.NewClient("passthrough:///"+string(peerID), opts...)
+	ctx, cancel := context.WithTimeout(ctx, d.dialTimeout)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, "passthrough:///"+string(peerID), opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial: %w", err)
+	}
+	return conn, nil
 }
 
 // DialContext opens a yamux stream to a peer

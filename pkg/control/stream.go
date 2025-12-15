@@ -13,14 +13,14 @@ import (
 
 const (
 	defaultMaxFrame = 1 << 20 // 1 MiB
-	frameHeaderSize = 4        // 4-byte length prefix
+	frameHeaderSize = 4       // 4-byte length prefix
 )
 
 // ControlStream handles control messages over a yamux stream
 type ControlStream struct {
-	stream    *yamux.Stream
-	maxFrame  uint32
-	deadline  time.Duration
+	stream   *yamux.Stream
+	maxFrame uint32
+	deadline time.Duration
 }
 
 // NewControlStream creates a new control stream
@@ -122,25 +122,18 @@ func (cs *ControlStream) SendHandshake(h *Handshake) error {
 }
 
 // ReceiveHandshake receives and validates a handshake message
+// It accepts direct Handshake JSON (from Rust nodes) for compatibility
 func (cs *ControlStream) ReceiveHandshake() (*Handshake, error) {
-	var msg ControlMessage
-	if err := cs.ReceiveJSON(&msg); err != nil {
+	var handshake Handshake
+	if err := cs.ReceiveJSON(&handshake); err != nil {
 		return nil, err
 	}
 
-	if msg.Type != "handshake" {
-		return nil, fmt.Errorf("expected handshake, got %s", msg.Type)
-	}
-
-	if msg.Handshake == nil {
-		return nil, fmt.Errorf("handshake payload is nil")
-	}
-
-	if err := msg.Handshake.ValidateBasics(); err != nil {
+	if err := handshake.ValidateBasics(); err != nil {
 		return nil, err
 	}
 
-	return msg.Handshake, nil
+	return &handshake, nil
 }
 
 // SendHeartbeat sends a heartbeat message
@@ -227,14 +220,14 @@ func ioReadFull(r io.Reader, buf []byte) (int, error) {
 func normalizeFeatures(features []string) []string {
 	seen := make(map[string]bool)
 	result := make([]string, 0, len(features))
-	
+
 	for _, f := range features {
 		if !seen[f] {
 			seen[f] = true
 			result = append(result, f)
 		}
 	}
-	
+
 	return result
 }
 

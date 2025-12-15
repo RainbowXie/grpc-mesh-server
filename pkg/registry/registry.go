@@ -20,16 +20,19 @@ var (
 // PeerID is a unique identifier for a peer
 type PeerID string
 
+// Session is an alias for SessionState for API compatibility
+type Session = SessionState
+
 // SessionState holds the state of a connected peer session
 type SessionState struct {
-	PeerID       PeerID
-	Handshake    *control.Handshake
-	Session      *yamux.Session
-	ControlChan  chan *control.ControlMessage
-	Connected    bool
-	ConnectedAt  time.Time
+	PeerID        PeerID
+	Handshake     *control.Handshake
+	Session       *yamux.Session
+	ControlChan   chan *control.ControlMessage
+	Connected     bool
+	ConnectedAt   time.Time
 	LastHeartbeat time.Time
-	mu           sync.RWMutex
+	mu            sync.RWMutex
 }
 
 // TouchHeartbeat updates the last heartbeat timestamp
@@ -43,10 +46,10 @@ func (s *SessionState) TouchHeartbeat() {
 func (s *SessionState) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	s.Connected = false
 	close(s.ControlChan)
-	
+
 	if s.Session != nil {
 		return s.Session.Close()
 	}
@@ -56,7 +59,7 @@ func (s *SessionState) Close() error {
 func (s *SessionState) snapshot() *SessionState {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	return &SessionState{
 		PeerID:        s.PeerID,
 		Handshake:     cloneHandshake(s.Handshake),
@@ -64,6 +67,14 @@ func (s *SessionState) snapshot() *SessionState {
 		ConnectedAt:   s.ConnectedAt,
 		LastHeartbeat: s.LastHeartbeat,
 	}
+}
+
+// SessionStats contains statistics about sessions
+type SessionStats struct {
+	TotalSessions    int
+	ActiveSessions   int
+	InactiveSessions int
+	TotalHeartbeats  uint64
 }
 
 // SessionManager manages all peer sessions
@@ -79,6 +90,28 @@ func New(logger *zap.Logger) *SessionManager {
 		sessions: make(map[PeerID]*SessionState),
 		logger:   logger,
 	}
+}
+
+// Register registers a new peer session (API compatibility wrapper)
+func (sm *SessionManager) Register(ctx context.Context, session *SessionState) error {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	if session == nil {
+		return ErrInvalidHandshake
+	}
+
+	// Close existing session if any
+	if existing, ok := sm.sessions[session.PeerID]; ok {
+		sm.logger.Warn("replacing existing session", zap.String("peer_id", string(session.PeerID)))
+		existing.Close()
+	}
+
+	sm.sessions[session.PeerID] = session
+	sm.logger.Info("registered session",
+		zap.String("peer_id", string(session.PeerID)))
+
+	return nil
 }
 
 // RegisterSession registers a new peer session
@@ -112,7 +145,7 @@ func (sm *SessionManager) RegisterSession(
 	}
 
 	sm.sessions[peerID] = state
-	sm.logger.Info("registered session", 
+	sm.logger.Info("registered session",
 		zap.String("peer_id", string(peerID)),
 		zap.String("version", handshake.Version))
 
@@ -120,16 +153,12 @@ func (sm *SessionManager) RegisterSession(
 }
 
 // Get retrieves a session by peer ID
-func (sm *SessionManager) Get(peerID PeerID) (*SessionState, error) {
+func (sm *SessionManager) Get(peerID PeerID) (*SessionState, bool) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
 	state, ok := sm.sessions[peerID]
-	if !ok {
-		return nil, ErrSessionNotFound
-	}
-
-	return state, nil
+	return state, ok
 }
 
 // Remove removes a session
@@ -160,6 +189,11 @@ func (sm *SessionManager) List() []*SessionState {
 	}
 
 	return result
+}
+
+// ListAll returns all sessions (API compatibility alias)
+func (sm *SessionManager) ListAll() []*SessionState {
+	return sm.List()
 }
 
 // Size returns the number of active sessions
@@ -215,7 +249,7 @@ func (sm *SessionManager) ControlChannel(peerID PeerID) (chan *control.ControlMe
 }
 
 // Heartbeat updates heartbeat timestamp
-func (sm *SessionManager) Heartbeat(peerID PeerID) error {
+func (sm *SessionManager) Heartbeat(ctx context.Context, peerID PeerID) error {
 	sm.mu.RLock()
 	state, ok := sm.sessions[peerID]
 	sm.mu.RUnlock()
@@ -264,6 +298,28 @@ func (sm *SessionManager) Cleanup(maxAge time.Duration) int {
 	}
 
 	return removed
+}
+
+// Stats returns session statistics
+func (sm *SessionManager) Stats() SessionStats {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	stats := SessionStats{
+		TotalSessions: len(sm.sessions),
+	}
+
+	for _, state := range sm.sessions {
+		state.mu.RLock()
+		if state.Connected {
+			stats.ActiveSessions++
+		} else {
+			stats.InactiveSessions++
+		}
+		state.mu.RUnlock()
+	}
+
+	return stats
 }
 
 func (sm *SessionManager) prune() {

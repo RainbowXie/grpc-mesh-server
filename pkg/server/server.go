@@ -26,6 +26,7 @@ type Server struct {
 	grpcServer     *grpc.Server
 	metricsServer  *metrics.Exporter
 	reverseGateway *reverse.Gateway
+	invokeProxy    *InvokeProxy
 
 	logger *zap.Logger
 }
@@ -57,6 +58,12 @@ func New(cfg *config.Config) (*Server, error) {
 	grpcSrv := grpc.NewServer()
 	metricsSrv := metrics.NewExporter(cfg.Server.MetricsAddress, logger)
 
+	// Create InvokeProxy with permissive defaults
+	invokeProxy := NewInvokeProxy(reg, gateway, nil, nil, logger)
+
+	// Register InvokePlane service
+	rpc.RegisterInvokePlaneServer(grpcSrv, invokeProxy)
+
 	return &Server{
 		cfg:            cfg,
 		registry:       reg,
@@ -64,6 +71,7 @@ func New(cfg *config.Config) (*Server, error) {
 		grpcServer:     grpcSrv,
 		metricsServer:  metricsSrv,
 		reverseGateway: gateway,
+		invokeProxy:    invokeProxy,
 		logger:         logger,
 	}, nil
 }
