@@ -4,7 +4,6 @@ grpc-mesh-server
 
 # Build artifacts
 /bin/
-/pkg/
 
 # Configuration (keep examples)
 config/config.yaml

@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package waemu.rpc.v1;
+
+option go_package = "github.com/grpc-mesh/grpc-mesh-server/pkg/rpc";
+
+// PeerMetadata describes static attributes reported at registration time.
+message PeerMetadata {
+  string peer_id = 1;
+  string version = 2;
+  repeated string tags = 3;
+  map<string, string> attributes = 4;
+}
+
+// RegisterAck acknowledges peer registration.
+message RegisterAck {
+  bool accepted = 1;
+  string assigned_id = 2;
+  string reason = 3;
+}
+
+// Heartbeat messages keep sessions alive.
+message HeartbeatRequest {
+  PeerMetadata meta = 1;
+  uint64 timestamp_ms = 2;
+}
+
+message HeartbeatResponse {
+  bool accepted = 1;
+  string reason = 2;
+}
+
+// UpdateMethods communicates the callable methods list.
+message MethodDescriptor {
+  string name = 1;
+  string description = 2;
+  repeated string tags = 3;
+  map<string, string> extra = 4;
+}
+
+message UpdateMethodsRequest {
+  string peer_id = 1;
+  repeated MethodDescriptor methods = 2;
+}
+
+message UpdateMethodsResponse {
+  bool success = 1;
+}
+
+// InvokeRequest asks grpc-mesh-node to execute a method.
+message InvokeRequest {
+  string peer_id = 1;
+  string method = 2;
+  bytes payload = 3;
+  string correlation_id = 4;
+  uint32 timeout_ms = 5;
+}
+
+// InvokeResponse returns the execution outcome.
+message InvokeResponse {
+  string peer_id = 1;
+  string method = 2;
+  bytes result = 3;
+  bool success = 4;
+  ErrorDetail error = 5;
+  string correlation_id = 6;
+  uint64 elapsed_ms = 7;
+}
+
+message ErrorDetail {
+  string code = 1;
+  string message = 2;
+  bytes details = 3;
+}
+
+// ControlPlane handles peer lifecycle.
+service ControlPlane {
+  rpc RegisterPeer(PeerMetadata) returns (RegisterAck);
+  rpc Heartbeat(stream HeartbeatRequest) returns (stream HeartbeatResponse);
+  rpc UpdateMethods(UpdateMethodsRequest) returns (UpdateMethodsResponse);
+}
+
+// InvokePlane handles reverse RPC invocations.
+service InvokePlane {
+  rpc Invoke(InvokeRequest) returns (InvokeResponse);
+  rpc InvokeStream(stream InvokeRequest) returns (stream InvokeResponse);
+}

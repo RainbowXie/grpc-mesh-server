@@ -1,0 +1,253 @@
+package tunnel
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"net"
+	"sync"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/grpc-mesh/grpc-mesh-server/pkg/control"
+	"github.com/grpc-mesh/grpc-mesh-server/pkg/registry"
+	"github.com/hashicorp/yamux"
+	"go.uber.org/zap"
+)
+
+// Server accepts TLS connections and manages yamux sessions
+type Server struct {
+	addr     string
+	certFile string
+	keyFile  string
+	caFile   string
+
+	listener net.Listener
+	tlsConfig *tls.Config
+	authPolicy *control.AuthPolicy
+	registry  *registry.SessionManager
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
+	logger *zap.Logger
+}
+
+// New creates a new tunnel server
+func New(
+	addr string,
+	certFile, keyFile, caFile string,
+	authPolicy *control.AuthPolicy,
+	reg *registry.SessionManager,
+	logger *zap.Logger,
+) (*Server, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	srv := &Server{
+		addr:       addr,
+		certFile:   certFile,
+		keyFile:    keyFile,
+		caFile:     caFile,
+		authPolicy: authPolicy,
+		registry:   reg,
+		ctx:        ctx,
+		cancel:     cancel,
+		logger:     logger,
+	}
+
+	// Load TLS config
+	if err := srv.loadTLSConfig(); err != nil {
+		return nil, err
+	}
+
+	// Setup cert reloader if files provided
+	if certFile != "" && keyFile != "" {
+		go srv.watchCerts()
+	}
+
+	return srv, nil
+}
+
+// Start starts the tunnel listener
+func (s *Server) Start() error {
+	tlsListener, err := tls.Listen("tcp", s.addr, s.tlsConfig)
+	if err != nil {
+		return fmt.Errorf("failed to start TLS listener: %w", err)
+	}
+
+	s.listener = tlsListener
+	s.logger.Info("tunnel listener started", zap.String("addr", s.addr))
+
+	s.wg.Add(1)
+	go s.acceptLoop()
+
+	return nil
+}
+
+// Stop stops the tunnel server
+func (s *Server) Stop() error {
+	s.cancel()
+
+	if s.listener != nil {
+		s.listener.Close()
+	}
+
+	s.wg.Wait()
+	s.logger.Info("tunnel server stopped")
+	return nil
+}
+
+func (s *Server) acceptLoop() {
+	defer s.wg.Done()
+
+	for {
+		conn, err := s.listener.Accept()
+		if err != nil {
+			select {
+			case <-s.ctx.Done():
+				return
+			default:
+				s.logger.Error("accept error", zap.Error(err))
+				time.Sleep(time.Second)
+				continue
+			}
+		}
+
+		s.wg.Add(1)
+		go s.handleConn(conn)
+	}
+}
+
+func (s *Server) handleConn(conn net.Conn) {
+	defer s.wg.Done()
+	defer conn.Close()
+
+	s.logger.Debug("accepted connection", zap.String("remote", conn.RemoteAddr().String()))
+
+	// Create yamux session
+	yamuxCfg := yamux.DefaultConfig()
+	session, err := yamux.Server(conn, yamuxCfg)
+	if err != nil {
+		s.logger.Error("failed to create yamux session", zap.Error(err))
+		return
+	}
+	defer session.Close()
+
+	// Accept control stream
+	controlStream, err := session.AcceptStream()
+	if err != nil {
+		s.logger.Error("failed to accept control stream", zap.Error(err))
+		return
+	}
+
+	cs := control.NewControlStream(controlStream)
+	defer cs.Close()
+
+	// Receive handshake
+	handshake, err := cs.ReceiveHandshake()
+	if err != nil {
+		s.logger.Error("handshake failed", zap.Error(err))
+		return
+	}
+
+	// Authorize
+	if err := s.authPolicy.Authorize(handshake.Token); err != nil {
+		s.logger.Warn("authorization failed",
+			zap.String("node_id", handshake.NodeID),
+			zap.Error(err))
+		return
+	}
+
+	peerID := registry.PeerID(handshake.NodeID)
+
+	// Register session
+	_, err = s.registry.RegisterSession(peerID, handshake, session)
+	if err != nil {
+		s.logger.Error("failed to register session", zap.Error(err))
+		return
+	}
+
+	s.logger.Info("session established",
+		zap.String("peer_id", string(peerID)),
+		zap.String("version", handshake.Version))
+
+	// Keep connection alive until session ends
+	select {
+	case <-s.ctx.Done():
+	case <-session.CloseChan():
+		s.logger.Info("session closed", zap.String("peer_id", string(peerID)))
+	}
+
+	s.registry.Remove(peerID)
+}
+
+func (s *Server) loadTLSConfig() error {
+	if s.certFile == "" || s.keyFile == "" {
+		// Use self-signed cert for development
+		s.logger.Warn("no TLS cert provided, using insecure config")
+		s.tlsConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+		return nil
+	}
+
+	cert, err := tls.LoadX509KeyPair(s.certFile, s.keyFile)
+	if err != nil {
+		return fmt.Errorf("failed to load TLS certificate: %w", err)
+	}
+
+	s.tlsConfig = &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS12,
+	}
+
+	s.logger.Info("loaded TLS certificate",
+		zap.String("cert", s.certFile),
+		zap.String("key", s.keyFile))
+
+	return nil
+}
+
+func (s *Server) watchCerts() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		s.logger.Error("failed to create cert watcher", zap.Error(err))
+		return
+	}
+	defer watcher.Close()
+
+	if err := watcher.Add(s.certFile); err != nil {
+		s.logger.Error("failed to watch cert file", zap.Error(err))
+		return
+	}
+
+	for {
+		select {
+		case <-s.ctx.Done():
+			return
+		case event := <-watcher.Events:
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				s.logger.Info("cert file changed, reloading")
+				if err := s.loadTLSConfig(); err != nil {
+					s.logger.Error("failed to reload cert", zap.Error(err))
+				}
+			}
+		case err := <-watcher.Errors:
+			s.logger.Error("cert watcher error", zap.Error(err))
+		}
+	}
+}
+
+// NewCertReloader creates a cert reloader (legacy compatibility)
+func NewCertReloader(certFile, keyFile string, logger *zap.Logger) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS12,
+	}, nil
+}
