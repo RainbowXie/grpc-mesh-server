@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v3.21.12
-// source: waemu.proto
+// source: grpc_mesh.proto
 
 package rpc
 
@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ControlPlane_RegisterPeer_FullMethodName  = "/waemu.rpc.v1.ControlPlane/RegisterPeer"
-	ControlPlane_Heartbeat_FullMethodName     = "/waemu.rpc.v1.ControlPlane/Heartbeat"
-	ControlPlane_UpdateMethods_FullMethodName = "/waemu.rpc.v1.ControlPlane/UpdateMethods"
+	ControlPlane_RegisterPeer_FullMethodName  = "/grpc_mesh.rpc.v1.ControlPlane/RegisterPeer"
+	ControlPlane_Heartbeat_FullMethodName     = "/grpc_mesh.rpc.v1.ControlPlane/Heartbeat"
+	ControlPlane_UpdateMethods_FullMethodName = "/grpc_mesh.rpc.v1.ControlPlane/UpdateMethods"
 )
 
 // ControlPlaneClient is the client API for ControlPlane service.
@@ -172,7 +172,7 @@ func _ControlPlane_UpdateMethods_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ControlPlane_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "waemu.rpc.v1.ControlPlane",
+	ServiceName: "grpc_mesh.rpc.v1.ControlPlane",
 	HandlerType: (*ControlPlaneServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -192,12 +192,12 @@ var ControlPlane_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "waemu.proto",
+	Metadata: "grpc_mesh.proto",
 }
 
 const (
-	InvokePlane_Invoke_FullMethodName       = "/waemu.rpc.v1.InvokePlane/Invoke"
-	InvokePlane_InvokeStream_FullMethodName = "/waemu.rpc.v1.InvokePlane/InvokeStream"
+	InvokePlane_Invoke_FullMethodName       = "/grpc_mesh.rpc.v1.InvokePlane/Invoke"
+	InvokePlane_InvokeStream_FullMethodName = "/grpc_mesh.rpc.v1.InvokePlane/InvokeStream"
 )
 
 // InvokePlaneClient is the client API for InvokePlane service.
@@ -315,7 +315,7 @@ type InvokePlane_InvokeStreamServer = grpc.BidiStreamingServer[InvokeRequest, In
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var InvokePlane_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "waemu.rpc.v1.InvokePlane",
+	ServiceName: "grpc_mesh.rpc.v1.InvokePlane",
 	HandlerType: (*InvokePlaneServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -331,5 +331,5 @@ var InvokePlane_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "waemu.proto",
+	Metadata: "grpc_mesh.proto",
 }

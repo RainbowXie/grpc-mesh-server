@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.21.12
-// source: waemu.proto
+// source: grpc_mesh.proto
 
 package rpc
 
@@ -34,7 +34,7 @@ type PeerMetadata struct {
 
 func (x *PeerMetadata) Reset() {
 	*x = PeerMetadata{}
-	mi := &file_waemu_proto_msgTypes[0]
+	mi := &file_grpc_mesh_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +46,7 @@ func (x *PeerMetadata) String() string {
 func (*PeerMetadata) ProtoMessage() {}
 
 func (x *PeerMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[0]
+	mi := &file_grpc_mesh_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +59,7 @@ func (x *PeerMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PeerMetadata.ProtoReflect.Descriptor instead.
 func (*PeerMetadata) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{0}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PeerMetadata) GetPeerId() string {
@@ -102,7 +102,7 @@ type RegisterAck struct {
 
 func (x *RegisterAck) Reset() {
 	*x = RegisterAck{}
-	mi := &file_waemu_proto_msgTypes[1]
+	mi := &file_grpc_mesh_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +114,7 @@ func (x *RegisterAck) String() string {
 func (*RegisterAck) ProtoMessage() {}
 
 func (x *RegisterAck) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[1]
+	mi := &file_grpc_mesh_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +127,7 @@ func (x *RegisterAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterAck.ProtoReflect.Descriptor instead.
 func (*RegisterAck) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{1}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RegisterAck) GetAccepted() bool {
@@ -162,7 +162,7 @@ type HeartbeatRequest struct {
 
 func (x *HeartbeatRequest) Reset() {
 	*x = HeartbeatRequest{}
-	mi := &file_waemu_proto_msgTypes[2]
+	mi := &file_grpc_mesh_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -174,7 +174,7 @@ func (x *HeartbeatRequest) String() string {
 func (*HeartbeatRequest) ProtoMessage() {}
 
 func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[2]
+	mi := &file_grpc_mesh_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -187,7 +187,7 @@ func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatRequest.ProtoReflect.Descriptor instead.
 func (*HeartbeatRequest) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{2}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *HeartbeatRequest) GetMeta() *PeerMetadata {
@@ -214,7 +214,7 @@ type HeartbeatResponse struct {
 
 func (x *HeartbeatResponse) Reset() {
 	*x = HeartbeatResponse{}
-	mi := &file_waemu_proto_msgTypes[3]
+	mi := &file_grpc_mesh_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -226,7 +226,7 @@ func (x *HeartbeatResponse) String() string {
 func (*HeartbeatResponse) ProtoMessage() {}
 
 func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[3]
+	mi := &file_grpc_mesh_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -239,7 +239,7 @@ func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatResponse.ProtoReflect.Descriptor instead.
 func (*HeartbeatResponse) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{3}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HeartbeatResponse) GetAccepted() bool {
@@ -269,7 +269,7 @@ type MethodDescriptor struct {
 
 func (x *MethodDescriptor) Reset() {
 	*x = MethodDescriptor{}
-	mi := &file_waemu_proto_msgTypes[4]
+	mi := &file_grpc_mesh_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +281,7 @@ func (x *MethodDescriptor) String() string {
 func (*MethodDescriptor) ProtoMessage() {}
 
 func (x *MethodDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[4]
+	mi := &file_grpc_mesh_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +294,7 @@ func (x *MethodDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MethodDescriptor.ProtoReflect.Descriptor instead.
 func (*MethodDescriptor) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{4}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *MethodDescriptor) GetName() string {
@@ -335,7 +335,7 @@ type UpdateMethodsRequest struct {
 
 func (x *UpdateMethodsRequest) Reset() {
 	*x = UpdateMethodsRequest{}
-	mi := &file_waemu_proto_msgTypes[5]
+	mi := &file_grpc_mesh_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +347,7 @@ func (x *UpdateMethodsRequest) String() string {
 func (*UpdateMethodsRequest) ProtoMessage() {}
 
 func (x *UpdateMethodsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[5]
+	mi := &file_grpc_mesh_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +360,7 @@ func (x *UpdateMethodsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMethodsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMethodsRequest) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{5}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateMethodsRequest) GetPeerId() string {
@@ -386,7 +386,7 @@ type UpdateMethodsResponse struct {
 
 func (x *UpdateMethodsResponse) Reset() {
 	*x = UpdateMethodsResponse{}
-	mi := &file_waemu_proto_msgTypes[6]
+	mi := &file_grpc_mesh_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +398,7 @@ func (x *UpdateMethodsResponse) String() string {
 func (*UpdateMethodsResponse) ProtoMessage() {}
 
 func (x *UpdateMethodsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[6]
+	mi := &file_grpc_mesh_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +411,7 @@ func (x *UpdateMethodsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMethodsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMethodsResponse) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{6}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateMethodsResponse) GetSuccess() bool {
@@ -435,7 +435,7 @@ type InvokeRequest struct {
 
 func (x *InvokeRequest) Reset() {
 	*x = InvokeRequest{}
-	mi := &file_waemu_proto_msgTypes[7]
+	mi := &file_grpc_mesh_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +447,7 @@ func (x *InvokeRequest) String() string {
 func (*InvokeRequest) ProtoMessage() {}
 
 func (x *InvokeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[7]
+	mi := &file_grpc_mesh_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +460,7 @@ func (x *InvokeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeRequest.ProtoReflect.Descriptor instead.
 func (*InvokeRequest) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{7}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *InvokeRequest) GetPeerId() string {
@@ -514,7 +514,7 @@ type InvokeResponse struct {
 
 func (x *InvokeResponse) Reset() {
 	*x = InvokeResponse{}
-	mi := &file_waemu_proto_msgTypes[8]
+	mi := &file_grpc_mesh_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -526,7 +526,7 @@ func (x *InvokeResponse) String() string {
 func (*InvokeResponse) ProtoMessage() {}
 
 func (x *InvokeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[8]
+	mi := &file_grpc_mesh_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -539,7 +539,7 @@ func (x *InvokeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeResponse.ProtoReflect.Descriptor instead.
 func (*InvokeResponse) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{8}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *InvokeResponse) GetPeerId() string {
@@ -602,7 +602,7 @@ type ErrorDetail struct {
 
 func (x *ErrorDetail) Reset() {
 	*x = ErrorDetail{}
-	mi := &file_waemu_proto_msgTypes[9]
+	mi := &file_grpc_mesh_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -614,7 +614,7 @@ func (x *ErrorDetail) String() string {
 func (*ErrorDetail) ProtoMessage() {}
 
 func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_waemu_proto_msgTypes[9]
+	mi := &file_grpc_mesh_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +627,7 @@ func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorDetail.ProtoReflect.Descriptor instead.
 func (*ErrorDetail) Descriptor() ([]byte, []int) {
-	return file_waemu_proto_rawDescGZIP(), []int{9}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ErrorDetail) GetCode() string {
@@ -651,17 +651,17 @@ func (x *ErrorDetail) GetDetails() []byte {
 	return nil
 }
 
-var File_waemu_proto protoreflect.FileDescriptor
+var File_grpc_mesh_proto protoreflect.FileDescriptor
 
-const file_waemu_proto_rawDesc = "" +
+const file_grpc_mesh_proto_rawDesc = "" +
 	"\n" +
-	"\vwaemu.proto\x12\fwaemu.rpc.v1\"\xe0\x01\n" +
+	"\x0fgrpc_mesh.proto\x12\x10grpc_mesh.rpc.v1\"\xe4\x01\n" +
 	"\fPeerMetadata\x12\x17\n" +
 	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x12\n" +
-	"\x04tags\x18\x03 \x03(\tR\x04tags\x12J\n" +
+	"\x04tags\x18\x03 \x03(\tR\x04tags\x12N\n" +
 	"\n" +
-	"attributes\x18\x04 \x03(\v2*.waemu.rpc.v1.PeerMetadata.AttributesEntryR\n" +
+	"attributes\x18\x04 \x03(\v2..grpc_mesh.rpc.v1.PeerMetadata.AttributesEntryR\n" +
 	"attributes\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -670,25 +670,25 @@ const file_waemu_proto_rawDesc = "" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x1f\n" +
 	"\vassigned_id\x18\x02 \x01(\tR\n" +
 	"assignedId\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\"e\n" +
-	"\x10HeartbeatRequest\x12.\n" +
-	"\x04meta\x18\x01 \x01(\v2\x1a.waemu.rpc.v1.PeerMetadataR\x04meta\x12!\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"i\n" +
+	"\x10HeartbeatRequest\x122\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1e.grpc_mesh.rpc.v1.PeerMetadataR\x04meta\x12!\n" +
 	"\ftimestamp_ms\x18\x02 \x01(\x04R\vtimestampMs\"G\n" +
 	"\x11HeartbeatResponse\x12\x1a\n" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xd7\x01\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xdb\x01\n" +
 	"\x10MethodDescriptor\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
-	"\x04tags\x18\x03 \x03(\tR\x04tags\x12?\n" +
-	"\x05extra\x18\x04 \x03(\v2).waemu.rpc.v1.MethodDescriptor.ExtraEntryR\x05extra\x1a8\n" +
+	"\x04tags\x18\x03 \x03(\tR\x04tags\x12C\n" +
+	"\x05extra\x18\x04 \x03(\v2-.grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntryR\x05extra\x1a8\n" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"i\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"m\n" +
 	"\x14UpdateMethodsRequest\x12\x17\n" +
-	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x128\n" +
-	"\amethods\x18\x02 \x03(\v2\x1e.waemu.rpc.v1.MethodDescriptorR\amethods\"1\n" +
+	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x12<\n" +
+	"\amethods\x18\x02 \x03(\v2\".grpc_mesh.rpc.v1.MethodDescriptorR\amethods\"1\n" +
 	"\x15UpdateMethodsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xa0\x01\n" +
 	"\rInvokeRequest\x12\x17\n" +
@@ -697,71 +697,71 @@ const file_waemu_proto_rawDesc = "" +
 	"\apayload\x18\x03 \x01(\fR\apayload\x12%\n" +
 	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\x12\x1d\n" +
 	"\n" +
-	"timeout_ms\x18\x05 \x01(\rR\ttimeoutMs\"\xea\x01\n" +
+	"timeout_ms\x18\x05 \x01(\rR\ttimeoutMs\"\xee\x01\n" +
 	"\x0eInvokeResponse\x12\x17\n" +
 	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12\x16\n" +
 	"\x06result\x18\x03 \x01(\fR\x06result\x12\x18\n" +
-	"\asuccess\x18\x04 \x01(\bR\asuccess\x12/\n" +
-	"\x05error\x18\x05 \x01(\v2\x19.waemu.rpc.v1.ErrorDetailR\x05error\x12%\n" +
+	"\asuccess\x18\x04 \x01(\bR\asuccess\x123\n" +
+	"\x05error\x18\x05 \x01(\v2\x1d.grpc_mesh.rpc.v1.ErrorDetailR\x05error\x12%\n" +
 	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId\x12\x1d\n" +
 	"\n" +
 	"elapsed_ms\x18\a \x01(\x04R\telapsedMs\"U\n" +
 	"\vErrorDetail\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x18\n" +
-	"\adetails\x18\x03 \x01(\fR\adetails2\x81\x02\n" +
-	"\fControlPlane\x12E\n" +
-	"\fRegisterPeer\x12\x1a.waemu.rpc.v1.PeerMetadata\x1a\x19.waemu.rpc.v1.RegisterAck\x12P\n" +
-	"\tHeartbeat\x12\x1e.waemu.rpc.v1.HeartbeatRequest\x1a\x1f.waemu.rpc.v1.HeartbeatResponse(\x010\x01\x12X\n" +
-	"\rUpdateMethods\x12\".waemu.rpc.v1.UpdateMethodsRequest\x1a#.waemu.rpc.v1.UpdateMethodsResponse2\xa1\x01\n" +
-	"\vInvokePlane\x12C\n" +
-	"\x06Invoke\x12\x1b.waemu.rpc.v1.InvokeRequest\x1a\x1c.waemu.rpc.v1.InvokeResponse\x12M\n" +
-	"\fInvokeStream\x12\x1b.waemu.rpc.v1.InvokeRequest\x1a\x1c.waemu.rpc.v1.InvokeResponse(\x010\x01B/Z-github.com/grpc-mesh/grpc-mesh-server/pkg/rpcb\x06proto3"
+	"\adetails\x18\x03 \x01(\fR\adetails2\x99\x02\n" +
+	"\fControlPlane\x12M\n" +
+	"\fRegisterPeer\x12\x1e.grpc_mesh.rpc.v1.PeerMetadata\x1a\x1d.grpc_mesh.rpc.v1.RegisterAck\x12X\n" +
+	"\tHeartbeat\x12\".grpc_mesh.rpc.v1.HeartbeatRequest\x1a#.grpc_mesh.rpc.v1.HeartbeatResponse(\x010\x01\x12`\n" +
+	"\rUpdateMethods\x12&.grpc_mesh.rpc.v1.UpdateMethodsRequest\x1a'.grpc_mesh.rpc.v1.UpdateMethodsResponse2\xb1\x01\n" +
+	"\vInvokePlane\x12K\n" +
+	"\x06Invoke\x12\x1f.grpc_mesh.rpc.v1.InvokeRequest\x1a .grpc_mesh.rpc.v1.InvokeResponse\x12U\n" +
+	"\fInvokeStream\x12\x1f.grpc_mesh.rpc.v1.InvokeRequest\x1a .grpc_mesh.rpc.v1.InvokeResponse(\x010\x01B/Z-github.com/grpc-mesh/grpc-mesh-server/pkg/rpcb\x06proto3"
 
 var (
-	file_waemu_proto_rawDescOnce sync.Once
-	file_waemu_proto_rawDescData []byte
+	file_grpc_mesh_proto_rawDescOnce sync.Once
+	file_grpc_mesh_proto_rawDescData []byte
 )
 
-func file_waemu_proto_rawDescGZIP() []byte {
-	file_waemu_proto_rawDescOnce.Do(func() {
-		file_waemu_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_waemu_proto_rawDesc), len(file_waemu_proto_rawDesc)))
+func file_grpc_mesh_proto_rawDescGZIP() []byte {
+	file_grpc_mesh_proto_rawDescOnce.Do(func() {
+		file_grpc_mesh_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_grpc_mesh_proto_rawDesc), len(file_grpc_mesh_proto_rawDesc)))
 	})
-	return file_waemu_proto_rawDescData
+	return file_grpc_mesh_proto_rawDescData
 }
 
-var file_waemu_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_waemu_proto_goTypes = []any{
-	(*PeerMetadata)(nil),          // 0: waemu.rpc.v1.PeerMetadata
-	(*RegisterAck)(nil),           // 1: waemu.rpc.v1.RegisterAck
-	(*HeartbeatRequest)(nil),      // 2: waemu.rpc.v1.HeartbeatRequest
-	(*HeartbeatResponse)(nil),     // 3: waemu.rpc.v1.HeartbeatResponse
-	(*MethodDescriptor)(nil),      // 4: waemu.rpc.v1.MethodDescriptor
-	(*UpdateMethodsRequest)(nil),  // 5: waemu.rpc.v1.UpdateMethodsRequest
-	(*UpdateMethodsResponse)(nil), // 6: waemu.rpc.v1.UpdateMethodsResponse
-	(*InvokeRequest)(nil),         // 7: waemu.rpc.v1.InvokeRequest
-	(*InvokeResponse)(nil),        // 8: waemu.rpc.v1.InvokeResponse
-	(*ErrorDetail)(nil),           // 9: waemu.rpc.v1.ErrorDetail
-	nil,                           // 10: waemu.rpc.v1.PeerMetadata.AttributesEntry
-	nil,                           // 11: waemu.rpc.v1.MethodDescriptor.ExtraEntry
+var file_grpc_mesh_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_grpc_mesh_proto_goTypes = []any{
+	(*PeerMetadata)(nil),          // 0: grpc_mesh.rpc.v1.PeerMetadata
+	(*RegisterAck)(nil),           // 1: grpc_mesh.rpc.v1.RegisterAck
+	(*HeartbeatRequest)(nil),      // 2: grpc_mesh.rpc.v1.HeartbeatRequest
+	(*HeartbeatResponse)(nil),     // 3: grpc_mesh.rpc.v1.HeartbeatResponse
+	(*MethodDescriptor)(nil),      // 4: grpc_mesh.rpc.v1.MethodDescriptor
+	(*UpdateMethodsRequest)(nil),  // 5: grpc_mesh.rpc.v1.UpdateMethodsRequest
+	(*UpdateMethodsResponse)(nil), // 6: grpc_mesh.rpc.v1.UpdateMethodsResponse
+	(*InvokeRequest)(nil),         // 7: grpc_mesh.rpc.v1.InvokeRequest
+	(*InvokeResponse)(nil),        // 8: grpc_mesh.rpc.v1.InvokeResponse
+	(*ErrorDetail)(nil),           // 9: grpc_mesh.rpc.v1.ErrorDetail
+	nil,                           // 10: grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
+	nil,                           // 11: grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
 }
-var file_waemu_proto_depIdxs = []int32{
-	10, // 0: waemu.rpc.v1.PeerMetadata.attributes:type_name -> waemu.rpc.v1.PeerMetadata.AttributesEntry
-	0,  // 1: waemu.rpc.v1.HeartbeatRequest.meta:type_name -> waemu.rpc.v1.PeerMetadata
-	11, // 2: waemu.rpc.v1.MethodDescriptor.extra:type_name -> waemu.rpc.v1.MethodDescriptor.ExtraEntry
-	4,  // 3: waemu.rpc.v1.UpdateMethodsRequest.methods:type_name -> waemu.rpc.v1.MethodDescriptor
-	9,  // 4: waemu.rpc.v1.InvokeResponse.error:type_name -> waemu.rpc.v1.ErrorDetail
-	0,  // 5: waemu.rpc.v1.ControlPlane.RegisterPeer:input_type -> waemu.rpc.v1.PeerMetadata
-	2,  // 6: waemu.rpc.v1.ControlPlane.Heartbeat:input_type -> waemu.rpc.v1.HeartbeatRequest
-	5,  // 7: waemu.rpc.v1.ControlPlane.UpdateMethods:input_type -> waemu.rpc.v1.UpdateMethodsRequest
-	7,  // 8: waemu.rpc.v1.InvokePlane.Invoke:input_type -> waemu.rpc.v1.InvokeRequest
-	7,  // 9: waemu.rpc.v1.InvokePlane.InvokeStream:input_type -> waemu.rpc.v1.InvokeRequest
-	1,  // 10: waemu.rpc.v1.ControlPlane.RegisterPeer:output_type -> waemu.rpc.v1.RegisterAck
-	3,  // 11: waemu.rpc.v1.ControlPlane.Heartbeat:output_type -> waemu.rpc.v1.HeartbeatResponse
-	6,  // 12: waemu.rpc.v1.ControlPlane.UpdateMethods:output_type -> waemu.rpc.v1.UpdateMethodsResponse
-	8,  // 13: waemu.rpc.v1.InvokePlane.Invoke:output_type -> waemu.rpc.v1.InvokeResponse
-	8,  // 14: waemu.rpc.v1.InvokePlane.InvokeStream:output_type -> waemu.rpc.v1.InvokeResponse
+var file_grpc_mesh_proto_depIdxs = []int32{
+	10, // 0: grpc_mesh.rpc.v1.PeerMetadata.attributes:type_name -> grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
+	0,  // 1: grpc_mesh.rpc.v1.HeartbeatRequest.meta:type_name -> grpc_mesh.rpc.v1.PeerMetadata
+	11, // 2: grpc_mesh.rpc.v1.MethodDescriptor.extra:type_name -> grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
+	4,  // 3: grpc_mesh.rpc.v1.UpdateMethodsRequest.methods:type_name -> grpc_mesh.rpc.v1.MethodDescriptor
+	9,  // 4: grpc_mesh.rpc.v1.InvokeResponse.error:type_name -> grpc_mesh.rpc.v1.ErrorDetail
+	0,  // 5: grpc_mesh.rpc.v1.ControlPlane.RegisterPeer:input_type -> grpc_mesh.rpc.v1.PeerMetadata
+	2,  // 6: grpc_mesh.rpc.v1.ControlPlane.Heartbeat:input_type -> grpc_mesh.rpc.v1.HeartbeatRequest
+	5,  // 7: grpc_mesh.rpc.v1.ControlPlane.UpdateMethods:input_type -> grpc_mesh.rpc.v1.UpdateMethodsRequest
+	7,  // 8: grpc_mesh.rpc.v1.InvokePlane.Invoke:input_type -> grpc_mesh.rpc.v1.InvokeRequest
+	7,  // 9: grpc_mesh.rpc.v1.InvokePlane.InvokeStream:input_type -> grpc_mesh.rpc.v1.InvokeRequest
+	1,  // 10: grpc_mesh.rpc.v1.ControlPlane.RegisterPeer:output_type -> grpc_mesh.rpc.v1.RegisterAck
+	3,  // 11: grpc_mesh.rpc.v1.ControlPlane.Heartbeat:output_type -> grpc_mesh.rpc.v1.HeartbeatResponse
+	6,  // 12: grpc_mesh.rpc.v1.ControlPlane.UpdateMethods:output_type -> grpc_mesh.rpc.v1.UpdateMethodsResponse
+	8,  // 13: grpc_mesh.rpc.v1.InvokePlane.Invoke:output_type -> grpc_mesh.rpc.v1.InvokeResponse
+	8,  // 14: grpc_mesh.rpc.v1.InvokePlane.InvokeStream:output_type -> grpc_mesh.rpc.v1.InvokeResponse
 	10, // [10:15] is the sub-list for method output_type
 	5,  // [5:10] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -769,26 +769,26 @@ var file_waemu_proto_depIdxs = []int32{
 	0,  // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_waemu_proto_init() }
-func file_waemu_proto_init() {
-	if File_waemu_proto != nil {
+func init() { file_grpc_mesh_proto_init() }
+func file_grpc_mesh_proto_init() {
+	if File_grpc_mesh_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waemu_proto_rawDesc), len(file_waemu_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grpc_mesh_proto_rawDesc), len(file_grpc_mesh_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
-		GoTypes:           file_waemu_proto_goTypes,
-		DependencyIndexes: file_waemu_proto_depIdxs,
-		MessageInfos:      file_waemu_proto_msgTypes,
+		GoTypes:           file_grpc_mesh_proto_goTypes,
+		DependencyIndexes: file_grpc_mesh_proto_depIdxs,
+		MessageInfos:      file_grpc_mesh_proto_msgTypes,
 	}.Build()
-	File_waemu_proto = out.File
-	file_waemu_proto_goTypes = nil
-	file_waemu_proto_depIdxs = nil
+	File_grpc_mesh_proto = out.File
+	file_grpc_mesh_proto_goTypes = nil
+	file_grpc_mesh_proto_depIdxs = nil
 }

@@ -15,17 +15,46 @@ import (
 	"go.uber.org/zap"
 )
 
-// Server accepts TLS connections and manages yamux sessions
+// Server accepts TLS connections and manages yamux sessions for mesh nodes.
+//
+// The Server handles the lifecycle of incoming TLS+Yamux connections from mesh nodes:
+//   - Accepts TLS connections on the configured address
+//   - Performs Yamux session multiplexing over each connection
+//   - Receives and validates handshake messages on the control stream
+//   - Registers authenticated sessions in the registry
+//   - Automatically reloads TLS certificates when they change on disk
+//
+// Each connected node maintains a long-lived Yamux session through which multiple
+// streams can be opened for control and data plane operations.
+//
+// Example usage:
+//
+//	srv, err := tunnel.New(
+//	    ":8443",
+//	    "server.crt",
+//	    "server.key",
+//	    "ca.crt",
+//	    authPolicy,
+//	    registry,
+//	    logger,
+//	)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	if err := srv.Start(); err != nil {
+//	    log.Fatal(err)
+//	}
+//	defer srv.Stop()
 type Server struct {
 	addr     string
 	certFile string
 	keyFile  string
 	caFile   string
 
-	listener net.Listener
-	tlsConfig *tls.Config
+	listener   net.Listener
+	tlsConfig  *tls.Config
 	authPolicy *control.AuthPolicy
-	registry  *registry.SessionManager
+	registry   *registry.SessionManager
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -34,7 +63,29 @@ type Server struct {
 	logger *zap.Logger
 }
 
-// New creates a new tunnel server
+// New creates a new tunnel server that listens for TLS+Yamux connections.
+//
+// Parameters:
+//   - addr: TCP address to listen on (e.g., ":8443" or "0.0.0.0:8443")
+//   - certFile: Path to TLS certificate file (PEM format)
+//   - keyFile: Path to TLS private key file (PEM format)
+//   - caFile: Path to CA certificate file for client verification (optional)
+//   - authPolicy: Policy for authenticating handshake tokens
+//   - reg: Session registry for tracking connected nodes
+//   - logger: Zap logger instance for structured logging
+//
+// The server will load the TLS certificate immediately and set up file watching
+// to automatically reload the certificate when it changes on disk (if certFile
+// and keyFile are provided).
+//
+// If certFile and keyFile are empty strings, the server will use a minimal
+// TLS configuration suitable only for development (not recommended for production).
+//
+// Returns an error if:
+//   - TLS certificate loading fails
+//   - Certificate files are invalid or inaccessible
+//
+// The server is not started automatically; call Start() to begin accepting connections.
 func New(
 	addr string,
 	certFile, keyFile, caFile string,
@@ -69,7 +120,27 @@ func New(
 	return srv, nil
 }
 
-// Start starts the tunnel listener
+// Start starts the tunnel listener and begins accepting connections.
+//
+// This method:
+//  1. Creates a TLS listener on the configured address
+//  2. Spawns an accept loop in a background goroutine
+//  3. Returns immediately after successful startup
+//
+// The accept loop will continue running until Stop() is called or a fatal
+// error occurs. Each accepted connection is handled in its own goroutine.
+//
+// Returns an error if:
+//   - The TCP port is already in use
+//   - TLS listener creation fails
+//   - Network configuration is invalid
+//
+// Example:
+//
+//	if err := srv.Start(); err != nil {
+//	    log.Fatalf("Failed to start tunnel: %v", err)
+//	}
+//	log.Println("Tunnel listener started")
 func (s *Server) Start() error {
 	tlsListener, err := tls.Listen("tcp", s.addr, s.tlsConfig)
 	if err != nil {
@@ -85,7 +156,23 @@ func (s *Server) Start() error {
 	return nil
 }
 
-// Stop stops the tunnel server
+// Stop gracefully stops the tunnel server and cleans up resources.
+//
+// This method:
+//  1. Cancels the server context, signaling all goroutines to exit
+//  2. Closes the TLS listener, stopping new connections
+//  3. Waits for all active connection handlers to complete
+//
+// All active Yamux sessions will be closed gracefully, and the certificate
+// watcher (if enabled) will be stopped.
+//
+// This method blocks until all goroutines have exited. It is safe to call
+// Stop() multiple times; subsequent calls are no-ops.
+//
+// Example:
+//
+//	srv.Stop()
+//	log.Println("Tunnel server stopped")
 func (s *Server) Stop() error {
 	s.cancel()
 
@@ -239,7 +326,24 @@ func (s *Server) watchCerts() {
 	}
 }
 
-// NewCertReloader creates a cert reloader (legacy compatibility)
+// NewCertReloader creates a TLS configuration by loading certificates from disk.
+//
+// This is a legacy compatibility function that creates a simple TLS config
+// without automatic reloading. New code should use the Server's built-in
+// certificate management via New() instead.
+//
+// Parameters:
+//   - certFile: Path to TLS certificate file (PEM format)
+//   - keyFile: Path to TLS private key file (PEM format)
+//   - logger: Zap logger for error reporting
+//
+// Returns a tls.Config configured with:
+//   - The loaded certificate
+//   - TLS 1.2 as minimum version
+//
+// Returns an error if the certificate files cannot be loaded or are invalid.
+//
+// Deprecated: Use Server.New() for automatic certificate reloading.
 func NewCertReloader(certFile, keyFile string, logger *zap.Logger) (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
