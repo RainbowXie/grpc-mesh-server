@@ -161,9 +161,10 @@ docker-run: ## Run Docker container
 proto: ## Generate protobuf code (if needed)
 	@echo "Generating protobuf code..."
 	@which protoc > /dev/null || (echo "protoc not installed" && exit 1)
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		pkg/rpc/*.proto
+	protoc --proto_path=../grpc_mesh/rpc/v1 \
+		--go_out=pkg/rpc --go_opt=paths=source_relative \
+		--go-grpc_out=pkg/rpc --go-grpc_opt=paths=source_relative \
+		grpc_mesh.proto
 	@echo "✓ Protobuf code generated"
 
 .PHONY: help
