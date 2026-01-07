@@ -117,7 +117,7 @@ func New(cfg *config.Config) (*Server, error) {
 	invokeProxy := NewInvokeProxy(reg, gateway, nil, nil, logger)
 
 	// Register InvokePlane service
-	rpc.RegisterInvokePlaneServer(grpcSrv, invokeProxy)
+	rpc.RegisterInvokePlaneServiceServer(grpcSrv, invokeProxy)
 
 	return &Server{
 		cfg:            cfg,
@@ -274,7 +274,7 @@ func (s *Server) Registry() *registry.SessionManager {
 // The service is instantiated automatically by New() and should not typically
 // be created directly by users.
 type InvokePlaneService struct {
-	rpc.UnimplementedInvokePlaneServer
+	rpc.UnimplementedInvokePlaneServiceServer
 	gateway *reverse.Gateway
 	logger  *zap.Logger
 }

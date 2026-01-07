@@ -90,30 +90,28 @@ func (x *PeerMetadata) GetAttributes() map[string]string {
 	return nil
 }
 
-// RegisterAck acknowledges peer registration.
-type RegisterAck struct {
+// RegisterPeerRequest wraps the metadata for registration.
+type RegisterPeerRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
-	AssignedId    string                 `protobuf:"bytes,2,opt,name=assigned_id,json=assignedId,proto3" json:"assigned_id,omitempty"`
-	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Metadata      *PeerMetadata          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RegisterAck) Reset() {
-	*x = RegisterAck{}
+func (x *RegisterPeerRequest) Reset() {
+	*x = RegisterPeerRequest{}
 	mi := &file_grpc_mesh_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RegisterAck) String() string {
+func (x *RegisterPeerRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RegisterAck) ProtoMessage() {}
+func (*RegisterPeerRequest) ProtoMessage() {}
 
-func (x *RegisterAck) ProtoReflect() protoreflect.Message {
+func (x *RegisterPeerRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_grpc_mesh_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -125,26 +123,73 @@ func (x *RegisterAck) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RegisterAck.ProtoReflect.Descriptor instead.
-func (*RegisterAck) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterPeerRequest.ProtoReflect.Descriptor instead.
+func (*RegisterPeerRequest) Descriptor() ([]byte, []int) {
 	return file_grpc_mesh_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *RegisterAck) GetAccepted() bool {
+func (x *RegisterPeerRequest) GetMetadata() *PeerMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+// RegisterPeerResponse acknowledges peer registration.
+type RegisterPeerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	AssignedId    string                 `protobuf:"bytes,2,opt,name=assigned_id,json=assignedId,proto3" json:"assigned_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterPeerResponse) Reset() {
+	*x = RegisterPeerResponse{}
+	mi := &file_grpc_mesh_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterPeerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterPeerResponse) ProtoMessage() {}
+
+func (x *RegisterPeerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_mesh_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterPeerResponse.ProtoReflect.Descriptor instead.
+func (*RegisterPeerResponse) Descriptor() ([]byte, []int) {
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RegisterPeerResponse) GetAccepted() bool {
 	if x != nil {
 		return x.Accepted
 	}
 	return false
 }
 
-func (x *RegisterAck) GetAssignedId() string {
+func (x *RegisterPeerResponse) GetAssignedId() string {
 	if x != nil {
 		return x.AssignedId
 	}
 	return ""
 }
 
-func (x *RegisterAck) GetReason() string {
+func (x *RegisterPeerResponse) GetReason() string {
 	if x != nil {
 		return x.Reason
 	}
@@ -162,7 +207,7 @@ type HeartbeatRequest struct {
 
 func (x *HeartbeatRequest) Reset() {
 	*x = HeartbeatRequest{}
-	mi := &file_grpc_mesh_proto_msgTypes[2]
+	mi := &file_grpc_mesh_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -174,7 +219,7 @@ func (x *HeartbeatRequest) String() string {
 func (*HeartbeatRequest) ProtoMessage() {}
 
 func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[2]
+	mi := &file_grpc_mesh_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -187,7 +232,7 @@ func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatRequest.ProtoReflect.Descriptor instead.
 func (*HeartbeatRequest) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{2}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HeartbeatRequest) GetMeta() *PeerMetadata {
@@ -214,7 +259,7 @@ type HeartbeatResponse struct {
 
 func (x *HeartbeatResponse) Reset() {
 	*x = HeartbeatResponse{}
-	mi := &file_grpc_mesh_proto_msgTypes[3]
+	mi := &file_grpc_mesh_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -226,7 +271,7 @@ func (x *HeartbeatResponse) String() string {
 func (*HeartbeatResponse) ProtoMessage() {}
 
 func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[3]
+	mi := &file_grpc_mesh_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -239,7 +284,7 @@ func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatResponse.ProtoReflect.Descriptor instead.
 func (*HeartbeatResponse) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{3}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *HeartbeatResponse) GetAccepted() bool {
@@ -269,7 +314,7 @@ type MethodDescriptor struct {
 
 func (x *MethodDescriptor) Reset() {
 	*x = MethodDescriptor{}
-	mi := &file_grpc_mesh_proto_msgTypes[4]
+	mi := &file_grpc_mesh_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +326,7 @@ func (x *MethodDescriptor) String() string {
 func (*MethodDescriptor) ProtoMessage() {}
 
 func (x *MethodDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[4]
+	mi := &file_grpc_mesh_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +339,7 @@ func (x *MethodDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MethodDescriptor.ProtoReflect.Descriptor instead.
 func (*MethodDescriptor) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{4}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *MethodDescriptor) GetName() string {
@@ -335,7 +380,7 @@ type UpdateMethodsRequest struct {
 
 func (x *UpdateMethodsRequest) Reset() {
 	*x = UpdateMethodsRequest{}
-	mi := &file_grpc_mesh_proto_msgTypes[5]
+	mi := &file_grpc_mesh_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +392,7 @@ func (x *UpdateMethodsRequest) String() string {
 func (*UpdateMethodsRequest) ProtoMessage() {}
 
 func (x *UpdateMethodsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[5]
+	mi := &file_grpc_mesh_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +405,7 @@ func (x *UpdateMethodsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMethodsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMethodsRequest) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{5}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateMethodsRequest) GetPeerId() string {
@@ -386,7 +431,7 @@ type UpdateMethodsResponse struct {
 
 func (x *UpdateMethodsResponse) Reset() {
 	*x = UpdateMethodsResponse{}
-	mi := &file_grpc_mesh_proto_msgTypes[6]
+	mi := &file_grpc_mesh_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +443,7 @@ func (x *UpdateMethodsResponse) String() string {
 func (*UpdateMethodsResponse) ProtoMessage() {}
 
 func (x *UpdateMethodsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[6]
+	mi := &file_grpc_mesh_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +456,7 @@ func (x *UpdateMethodsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMethodsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMethodsResponse) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{6}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateMethodsResponse) GetSuccess() bool {
@@ -435,7 +480,7 @@ type InvokeRequest struct {
 
 func (x *InvokeRequest) Reset() {
 	*x = InvokeRequest{}
-	mi := &file_grpc_mesh_proto_msgTypes[7]
+	mi := &file_grpc_mesh_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +492,7 @@ func (x *InvokeRequest) String() string {
 func (*InvokeRequest) ProtoMessage() {}
 
 func (x *InvokeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[7]
+	mi := &file_grpc_mesh_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +505,7 @@ func (x *InvokeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeRequest.ProtoReflect.Descriptor instead.
 func (*InvokeRequest) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{7}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *InvokeRequest) GetPeerId() string {
@@ -514,7 +559,7 @@ type InvokeResponse struct {
 
 func (x *InvokeResponse) Reset() {
 	*x = InvokeResponse{}
-	mi := &file_grpc_mesh_proto_msgTypes[8]
+	mi := &file_grpc_mesh_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -526,7 +571,7 @@ func (x *InvokeResponse) String() string {
 func (*InvokeResponse) ProtoMessage() {}
 
 func (x *InvokeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[8]
+	mi := &file_grpc_mesh_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -539,7 +584,7 @@ func (x *InvokeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeResponse.ProtoReflect.Descriptor instead.
 func (*InvokeResponse) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{8}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *InvokeResponse) GetPeerId() string {
@@ -591,6 +636,176 @@ func (x *InvokeResponse) GetElapsedMs() uint64 {
 	return 0
 }
 
+// InvokeStreamRequest is the request type for the InvokeStream RPC.
+type InvokeStreamRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PeerId        string                 `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
+	Method        string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Payload       []byte                 `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	CorrelationId string                 `protobuf:"bytes,4,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	TimeoutMs     uint32                 `protobuf:"varint,5,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvokeStreamRequest) Reset() {
+	*x = InvokeStreamRequest{}
+	mi := &file_grpc_mesh_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvokeStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvokeStreamRequest) ProtoMessage() {}
+
+func (x *InvokeStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_mesh_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvokeStreamRequest.ProtoReflect.Descriptor instead.
+func (*InvokeStreamRequest) Descriptor() ([]byte, []int) {
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *InvokeStreamRequest) GetPeerId() string {
+	if x != nil {
+		return x.PeerId
+	}
+	return ""
+}
+
+func (x *InvokeStreamRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *InvokeStreamRequest) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *InvokeStreamRequest) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *InvokeStreamRequest) GetTimeoutMs() uint32 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+// InvokeStreamResponse is the response type for the InvokeStream RPC.
+type InvokeStreamResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PeerId        string                 `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
+	Method        string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Result        []byte                 `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"`
+	Success       bool                   `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
+	Error         *ErrorDetail           `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
+	CorrelationId string                 `protobuf:"bytes,6,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	ElapsedMs     uint64                 `protobuf:"varint,7,opt,name=elapsed_ms,json=elapsedMs,proto3" json:"elapsed_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvokeStreamResponse) Reset() {
+	*x = InvokeStreamResponse{}
+	mi := &file_grpc_mesh_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvokeStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvokeStreamResponse) ProtoMessage() {}
+
+func (x *InvokeStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_grpc_mesh_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvokeStreamResponse.ProtoReflect.Descriptor instead.
+func (*InvokeStreamResponse) Descriptor() ([]byte, []int) {
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *InvokeStreamResponse) GetPeerId() string {
+	if x != nil {
+		return x.PeerId
+	}
+	return ""
+}
+
+func (x *InvokeStreamResponse) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *InvokeStreamResponse) GetResult() []byte {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+func (x *InvokeStreamResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *InvokeStreamResponse) GetError() *ErrorDetail {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *InvokeStreamResponse) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *InvokeStreamResponse) GetElapsedMs() uint64 {
+	if x != nil {
+		return x.ElapsedMs
+	}
+	return 0
+}
+
 type ErrorDetail struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -602,7 +817,7 @@ type ErrorDetail struct {
 
 func (x *ErrorDetail) Reset() {
 	*x = ErrorDetail{}
-	mi := &file_grpc_mesh_proto_msgTypes[9]
+	mi := &file_grpc_mesh_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -614,7 +829,7 @@ func (x *ErrorDetail) String() string {
 func (*ErrorDetail) ProtoMessage() {}
 
 func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_grpc_mesh_proto_msgTypes[9]
+	mi := &file_grpc_mesh_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +842,7 @@ func (x *ErrorDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorDetail.ProtoReflect.Descriptor instead.
 func (*ErrorDetail) Descriptor() ([]byte, []int) {
-	return file_grpc_mesh_proto_rawDescGZIP(), []int{9}
+	return file_grpc_mesh_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ErrorDetail) GetCode() string {
@@ -665,8 +880,10 @@ const file_grpc_mesh_proto_rawDesc = "" +
 	"attributes\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"b\n" +
-	"\vRegisterAck\x12\x1a\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"Q\n" +
+	"\x13RegisterPeerRequest\x12:\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1e.grpc_mesh.rpc.v1.PeerMetadataR\bmetadata\"k\n" +
+	"\x14RegisterPeerResponse\x12\x1a\n" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x1f\n" +
 	"\vassigned_id\x18\x02 \x01(\tR\n" +
 	"assignedId\x12\x16\n" +
@@ -706,18 +923,34 @@ const file_grpc_mesh_proto_rawDesc = "" +
 	"\x05error\x18\x05 \x01(\v2\x1d.grpc_mesh.rpc.v1.ErrorDetailR\x05error\x12%\n" +
 	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId\x12\x1d\n" +
 	"\n" +
+	"elapsed_ms\x18\a \x01(\x04R\telapsedMs\"\xa6\x01\n" +
+	"\x13InvokeStreamRequest\x12\x17\n" +
+	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12\x18\n" +
+	"\apayload\x18\x03 \x01(\fR\apayload\x12%\n" +
+	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x05 \x01(\rR\ttimeoutMs\"\xf4\x01\n" +
+	"\x14InvokeStreamResponse\x12\x17\n" +
+	"\apeer_id\x18\x01 \x01(\tR\x06peerId\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x12\x16\n" +
+	"\x06result\x18\x03 \x01(\fR\x06result\x12\x18\n" +
+	"\asuccess\x18\x04 \x01(\bR\asuccess\x123\n" +
+	"\x05error\x18\x05 \x01(\v2\x1d.grpc_mesh.rpc.v1.ErrorDetailR\x05error\x12%\n" +
+	"\x0ecorrelation_id\x18\x06 \x01(\tR\rcorrelationId\x12\x1d\n" +
+	"\n" +
 	"elapsed_ms\x18\a \x01(\x04R\telapsedMs\"U\n" +
 	"\vErrorDetail\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x18\n" +
-	"\adetails\x18\x03 \x01(\fR\adetails2\x99\x02\n" +
-	"\fControlPlane\x12M\n" +
-	"\fRegisterPeer\x12\x1e.grpc_mesh.rpc.v1.PeerMetadata\x1a\x1d.grpc_mesh.rpc.v1.RegisterAck\x12X\n" +
+	"\adetails\x18\x03 \x01(\fR\adetails2\xb0\x02\n" +
+	"\x13ControlPlaneService\x12]\n" +
+	"\fRegisterPeer\x12%.grpc_mesh.rpc.v1.RegisterPeerRequest\x1a&.grpc_mesh.rpc.v1.RegisterPeerResponse\x12X\n" +
 	"\tHeartbeat\x12\".grpc_mesh.rpc.v1.HeartbeatRequest\x1a#.grpc_mesh.rpc.v1.HeartbeatResponse(\x010\x01\x12`\n" +
-	"\rUpdateMethods\x12&.grpc_mesh.rpc.v1.UpdateMethodsRequest\x1a'.grpc_mesh.rpc.v1.UpdateMethodsResponse2\xb1\x01\n" +
-	"\vInvokePlane\x12K\n" +
-	"\x06Invoke\x12\x1f.grpc_mesh.rpc.v1.InvokeRequest\x1a .grpc_mesh.rpc.v1.InvokeResponse\x12U\n" +
-	"\fInvokeStream\x12\x1f.grpc_mesh.rpc.v1.InvokeRequest\x1a .grpc_mesh.rpc.v1.InvokeResponse(\x010\x01B/Z-github.com/grpc-mesh/grpc-mesh-server/pkg/rpcb\x06proto3"
+	"\rUpdateMethods\x12&.grpc_mesh.rpc.v1.UpdateMethodsRequest\x1a'.grpc_mesh.rpc.v1.UpdateMethodsResponse2\xc4\x01\n" +
+	"\x12InvokePlaneService\x12K\n" +
+	"\x06Invoke\x12\x1f.grpc_mesh.rpc.v1.InvokeRequest\x1a .grpc_mesh.rpc.v1.InvokeResponse\x12a\n" +
+	"\fInvokeStream\x12%.grpc_mesh.rpc.v1.InvokeStreamRequest\x1a&.grpc_mesh.rpc.v1.InvokeStreamResponse(\x010\x01B/Z-github.com/grpc-mesh/grpc-mesh-server/pkg/rpcb\x06proto3"
 
 var (
 	file_grpc_mesh_proto_rawDescOnce sync.Once
@@ -731,42 +964,47 @@ func file_grpc_mesh_proto_rawDescGZIP() []byte {
 	return file_grpc_mesh_proto_rawDescData
 }
 
-var file_grpc_mesh_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_grpc_mesh_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_grpc_mesh_proto_goTypes = []any{
 	(*PeerMetadata)(nil),          // 0: grpc_mesh.rpc.v1.PeerMetadata
-	(*RegisterAck)(nil),           // 1: grpc_mesh.rpc.v1.RegisterAck
-	(*HeartbeatRequest)(nil),      // 2: grpc_mesh.rpc.v1.HeartbeatRequest
-	(*HeartbeatResponse)(nil),     // 3: grpc_mesh.rpc.v1.HeartbeatResponse
-	(*MethodDescriptor)(nil),      // 4: grpc_mesh.rpc.v1.MethodDescriptor
-	(*UpdateMethodsRequest)(nil),  // 5: grpc_mesh.rpc.v1.UpdateMethodsRequest
-	(*UpdateMethodsResponse)(nil), // 6: grpc_mesh.rpc.v1.UpdateMethodsResponse
-	(*InvokeRequest)(nil),         // 7: grpc_mesh.rpc.v1.InvokeRequest
-	(*InvokeResponse)(nil),        // 8: grpc_mesh.rpc.v1.InvokeResponse
-	(*ErrorDetail)(nil),           // 9: grpc_mesh.rpc.v1.ErrorDetail
-	nil,                           // 10: grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
-	nil,                           // 11: grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
+	(*RegisterPeerRequest)(nil),   // 1: grpc_mesh.rpc.v1.RegisterPeerRequest
+	(*RegisterPeerResponse)(nil),  // 2: grpc_mesh.rpc.v1.RegisterPeerResponse
+	(*HeartbeatRequest)(nil),      // 3: grpc_mesh.rpc.v1.HeartbeatRequest
+	(*HeartbeatResponse)(nil),     // 4: grpc_mesh.rpc.v1.HeartbeatResponse
+	(*MethodDescriptor)(nil),      // 5: grpc_mesh.rpc.v1.MethodDescriptor
+	(*UpdateMethodsRequest)(nil),  // 6: grpc_mesh.rpc.v1.UpdateMethodsRequest
+	(*UpdateMethodsResponse)(nil), // 7: grpc_mesh.rpc.v1.UpdateMethodsResponse
+	(*InvokeRequest)(nil),         // 8: grpc_mesh.rpc.v1.InvokeRequest
+	(*InvokeResponse)(nil),        // 9: grpc_mesh.rpc.v1.InvokeResponse
+	(*InvokeStreamRequest)(nil),   // 10: grpc_mesh.rpc.v1.InvokeStreamRequest
+	(*InvokeStreamResponse)(nil),  // 11: grpc_mesh.rpc.v1.InvokeStreamResponse
+	(*ErrorDetail)(nil),           // 12: grpc_mesh.rpc.v1.ErrorDetail
+	nil,                           // 13: grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
+	nil,                           // 14: grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
 }
 var file_grpc_mesh_proto_depIdxs = []int32{
-	10, // 0: grpc_mesh.rpc.v1.PeerMetadata.attributes:type_name -> grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
-	0,  // 1: grpc_mesh.rpc.v1.HeartbeatRequest.meta:type_name -> grpc_mesh.rpc.v1.PeerMetadata
-	11, // 2: grpc_mesh.rpc.v1.MethodDescriptor.extra:type_name -> grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
-	4,  // 3: grpc_mesh.rpc.v1.UpdateMethodsRequest.methods:type_name -> grpc_mesh.rpc.v1.MethodDescriptor
-	9,  // 4: grpc_mesh.rpc.v1.InvokeResponse.error:type_name -> grpc_mesh.rpc.v1.ErrorDetail
-	0,  // 5: grpc_mesh.rpc.v1.ControlPlane.RegisterPeer:input_type -> grpc_mesh.rpc.v1.PeerMetadata
-	2,  // 6: grpc_mesh.rpc.v1.ControlPlane.Heartbeat:input_type -> grpc_mesh.rpc.v1.HeartbeatRequest
-	5,  // 7: grpc_mesh.rpc.v1.ControlPlane.UpdateMethods:input_type -> grpc_mesh.rpc.v1.UpdateMethodsRequest
-	7,  // 8: grpc_mesh.rpc.v1.InvokePlane.Invoke:input_type -> grpc_mesh.rpc.v1.InvokeRequest
-	7,  // 9: grpc_mesh.rpc.v1.InvokePlane.InvokeStream:input_type -> grpc_mesh.rpc.v1.InvokeRequest
-	1,  // 10: grpc_mesh.rpc.v1.ControlPlane.RegisterPeer:output_type -> grpc_mesh.rpc.v1.RegisterAck
-	3,  // 11: grpc_mesh.rpc.v1.ControlPlane.Heartbeat:output_type -> grpc_mesh.rpc.v1.HeartbeatResponse
-	6,  // 12: grpc_mesh.rpc.v1.ControlPlane.UpdateMethods:output_type -> grpc_mesh.rpc.v1.UpdateMethodsResponse
-	8,  // 13: grpc_mesh.rpc.v1.InvokePlane.Invoke:output_type -> grpc_mesh.rpc.v1.InvokeResponse
-	8,  // 14: grpc_mesh.rpc.v1.InvokePlane.InvokeStream:output_type -> grpc_mesh.rpc.v1.InvokeResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	13, // 0: grpc_mesh.rpc.v1.PeerMetadata.attributes:type_name -> grpc_mesh.rpc.v1.PeerMetadata.AttributesEntry
+	0,  // 1: grpc_mesh.rpc.v1.RegisterPeerRequest.metadata:type_name -> grpc_mesh.rpc.v1.PeerMetadata
+	0,  // 2: grpc_mesh.rpc.v1.HeartbeatRequest.meta:type_name -> grpc_mesh.rpc.v1.PeerMetadata
+	14, // 3: grpc_mesh.rpc.v1.MethodDescriptor.extra:type_name -> grpc_mesh.rpc.v1.MethodDescriptor.ExtraEntry
+	5,  // 4: grpc_mesh.rpc.v1.UpdateMethodsRequest.methods:type_name -> grpc_mesh.rpc.v1.MethodDescriptor
+	12, // 5: grpc_mesh.rpc.v1.InvokeResponse.error:type_name -> grpc_mesh.rpc.v1.ErrorDetail
+	12, // 6: grpc_mesh.rpc.v1.InvokeStreamResponse.error:type_name -> grpc_mesh.rpc.v1.ErrorDetail
+	1,  // 7: grpc_mesh.rpc.v1.ControlPlaneService.RegisterPeer:input_type -> grpc_mesh.rpc.v1.RegisterPeerRequest
+	3,  // 8: grpc_mesh.rpc.v1.ControlPlaneService.Heartbeat:input_type -> grpc_mesh.rpc.v1.HeartbeatRequest
+	6,  // 9: grpc_mesh.rpc.v1.ControlPlaneService.UpdateMethods:input_type -> grpc_mesh.rpc.v1.UpdateMethodsRequest
+	8,  // 10: grpc_mesh.rpc.v1.InvokePlaneService.Invoke:input_type -> grpc_mesh.rpc.v1.InvokeRequest
+	10, // 11: grpc_mesh.rpc.v1.InvokePlaneService.InvokeStream:input_type -> grpc_mesh.rpc.v1.InvokeStreamRequest
+	2,  // 12: grpc_mesh.rpc.v1.ControlPlaneService.RegisterPeer:output_type -> grpc_mesh.rpc.v1.RegisterPeerResponse
+	4,  // 13: grpc_mesh.rpc.v1.ControlPlaneService.Heartbeat:output_type -> grpc_mesh.rpc.v1.HeartbeatResponse
+	7,  // 14: grpc_mesh.rpc.v1.ControlPlaneService.UpdateMethods:output_type -> grpc_mesh.rpc.v1.UpdateMethodsResponse
+	9,  // 15: grpc_mesh.rpc.v1.InvokePlaneService.Invoke:output_type -> grpc_mesh.rpc.v1.InvokeResponse
+	11, // 16: grpc_mesh.rpc.v1.InvokePlaneService.InvokeStream:output_type -> grpc_mesh.rpc.v1.InvokeStreamResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_grpc_mesh_proto_init() }
@@ -780,7 +1018,7 @@ func file_grpc_mesh_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grpc_mesh_proto_rawDesc), len(file_grpc_mesh_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

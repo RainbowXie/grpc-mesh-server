@@ -19,43 +19,43 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ControlPlane_RegisterPeer_FullMethodName  = "/grpc_mesh.rpc.v1.ControlPlane/RegisterPeer"
-	ControlPlane_Heartbeat_FullMethodName     = "/grpc_mesh.rpc.v1.ControlPlane/Heartbeat"
-	ControlPlane_UpdateMethods_FullMethodName = "/grpc_mesh.rpc.v1.ControlPlane/UpdateMethods"
+	ControlPlaneService_RegisterPeer_FullMethodName  = "/grpc_mesh.rpc.v1.ControlPlaneService/RegisterPeer"
+	ControlPlaneService_Heartbeat_FullMethodName     = "/grpc_mesh.rpc.v1.ControlPlaneService/Heartbeat"
+	ControlPlaneService_UpdateMethods_FullMethodName = "/grpc_mesh.rpc.v1.ControlPlaneService/UpdateMethods"
 )
 
-// ControlPlaneClient is the client API for ControlPlane service.
+// ControlPlaneServiceClient is the client API for ControlPlaneService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ControlPlane handles peer lifecycle.
-type ControlPlaneClient interface {
-	RegisterPeer(ctx context.Context, in *PeerMetadata, opts ...grpc.CallOption) (*RegisterAck, error)
+// ControlPlaneService handles peer lifecycle.
+type ControlPlaneServiceClient interface {
+	RegisterPeer(ctx context.Context, in *RegisterPeerRequest, opts ...grpc.CallOption) (*RegisterPeerResponse, error)
 	Heartbeat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[HeartbeatRequest, HeartbeatResponse], error)
 	UpdateMethods(ctx context.Context, in *UpdateMethodsRequest, opts ...grpc.CallOption) (*UpdateMethodsResponse, error)
 }
 
-type controlPlaneClient struct {
+type controlPlaneServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewControlPlaneClient(cc grpc.ClientConnInterface) ControlPlaneClient {
-	return &controlPlaneClient{cc}
+func NewControlPlaneServiceClient(cc grpc.ClientConnInterface) ControlPlaneServiceClient {
+	return &controlPlaneServiceClient{cc}
 }
 
-func (c *controlPlaneClient) RegisterPeer(ctx context.Context, in *PeerMetadata, opts ...grpc.CallOption) (*RegisterAck, error) {
+func (c *controlPlaneServiceClient) RegisterPeer(ctx context.Context, in *RegisterPeerRequest, opts ...grpc.CallOption) (*RegisterPeerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RegisterAck)
-	err := c.cc.Invoke(ctx, ControlPlane_RegisterPeer_FullMethodName, in, out, cOpts...)
+	out := new(RegisterPeerResponse)
+	err := c.cc.Invoke(ctx, ControlPlaneService_RegisterPeer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *controlPlaneClient) Heartbeat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[HeartbeatRequest, HeartbeatResponse], error) {
+func (c *controlPlaneServiceClient) Heartbeat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[HeartbeatRequest, HeartbeatResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ControlPlane_ServiceDesc.Streams[0], ControlPlane_Heartbeat_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ControlPlaneService_ServiceDesc.Streams[0], ControlPlaneService_Heartbeat_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,130 +64,130 @@ func (c *controlPlaneClient) Heartbeat(ctx context.Context, opts ...grpc.CallOpt
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ControlPlane_HeartbeatClient = grpc.BidiStreamingClient[HeartbeatRequest, HeartbeatResponse]
+type ControlPlaneService_HeartbeatClient = grpc.BidiStreamingClient[HeartbeatRequest, HeartbeatResponse]
 
-func (c *controlPlaneClient) UpdateMethods(ctx context.Context, in *UpdateMethodsRequest, opts ...grpc.CallOption) (*UpdateMethodsResponse, error) {
+func (c *controlPlaneServiceClient) UpdateMethods(ctx context.Context, in *UpdateMethodsRequest, opts ...grpc.CallOption) (*UpdateMethodsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateMethodsResponse)
-	err := c.cc.Invoke(ctx, ControlPlane_UpdateMethods_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ControlPlaneService_UpdateMethods_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ControlPlaneServer is the server API for ControlPlane service.
-// All implementations must embed UnimplementedControlPlaneServer
+// ControlPlaneServiceServer is the server API for ControlPlaneService service.
+// All implementations must embed UnimplementedControlPlaneServiceServer
 // for forward compatibility.
 //
-// ControlPlane handles peer lifecycle.
-type ControlPlaneServer interface {
-	RegisterPeer(context.Context, *PeerMetadata) (*RegisterAck, error)
+// ControlPlaneService handles peer lifecycle.
+type ControlPlaneServiceServer interface {
+	RegisterPeer(context.Context, *RegisterPeerRequest) (*RegisterPeerResponse, error)
 	Heartbeat(grpc.BidiStreamingServer[HeartbeatRequest, HeartbeatResponse]) error
 	UpdateMethods(context.Context, *UpdateMethodsRequest) (*UpdateMethodsResponse, error)
-	mustEmbedUnimplementedControlPlaneServer()
+	mustEmbedUnimplementedControlPlaneServiceServer()
 }
 
-// UnimplementedControlPlaneServer must be embedded to have
+// UnimplementedControlPlaneServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedControlPlaneServer struct{}
+type UnimplementedControlPlaneServiceServer struct{}
 
-func (UnimplementedControlPlaneServer) RegisterPeer(context.Context, *PeerMetadata) (*RegisterAck, error) {
+func (UnimplementedControlPlaneServiceServer) RegisterPeer(context.Context, *RegisterPeerRequest) (*RegisterPeerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterPeer not implemented")
 }
-func (UnimplementedControlPlaneServer) Heartbeat(grpc.BidiStreamingServer[HeartbeatRequest, HeartbeatResponse]) error {
+func (UnimplementedControlPlaneServiceServer) Heartbeat(grpc.BidiStreamingServer[HeartbeatRequest, HeartbeatResponse]) error {
 	return status.Error(codes.Unimplemented, "method Heartbeat not implemented")
 }
-func (UnimplementedControlPlaneServer) UpdateMethods(context.Context, *UpdateMethodsRequest) (*UpdateMethodsResponse, error) {
+func (UnimplementedControlPlaneServiceServer) UpdateMethods(context.Context, *UpdateMethodsRequest) (*UpdateMethodsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMethods not implemented")
 }
-func (UnimplementedControlPlaneServer) mustEmbedUnimplementedControlPlaneServer() {}
-func (UnimplementedControlPlaneServer) testEmbeddedByValue()                      {}
+func (UnimplementedControlPlaneServiceServer) mustEmbedUnimplementedControlPlaneServiceServer() {}
+func (UnimplementedControlPlaneServiceServer) testEmbeddedByValue()                             {}
 
-// UnsafeControlPlaneServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ControlPlaneServer will
+// UnsafeControlPlaneServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ControlPlaneServiceServer will
 // result in compilation errors.
-type UnsafeControlPlaneServer interface {
-	mustEmbedUnimplementedControlPlaneServer()
+type UnsafeControlPlaneServiceServer interface {
+	mustEmbedUnimplementedControlPlaneServiceServer()
 }
 
-func RegisterControlPlaneServer(s grpc.ServiceRegistrar, srv ControlPlaneServer) {
-	// If the following call panics, it indicates UnimplementedControlPlaneServer was
+func RegisterControlPlaneServiceServer(s grpc.ServiceRegistrar, srv ControlPlaneServiceServer) {
+	// If the following call panics, it indicates UnimplementedControlPlaneServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ControlPlane_ServiceDesc, srv)
+	s.RegisterService(&ControlPlaneService_ServiceDesc, srv)
 }
 
-func _ControlPlane_RegisterPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PeerMetadata)
+func _ControlPlaneService_RegisterPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterPeerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControlPlaneServer).RegisterPeer(ctx, in)
+		return srv.(ControlPlaneServiceServer).RegisterPeer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ControlPlane_RegisterPeer_FullMethodName,
+		FullMethod: ControlPlaneService_RegisterPeer_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControlPlaneServer).RegisterPeer(ctx, req.(*PeerMetadata))
+		return srv.(ControlPlaneServiceServer).RegisterPeer(ctx, req.(*RegisterPeerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ControlPlane_Heartbeat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ControlPlaneServer).Heartbeat(&grpc.GenericServerStream[HeartbeatRequest, HeartbeatResponse]{ServerStream: stream})
+func _ControlPlaneService_Heartbeat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ControlPlaneServiceServer).Heartbeat(&grpc.GenericServerStream[HeartbeatRequest, HeartbeatResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ControlPlane_HeartbeatServer = grpc.BidiStreamingServer[HeartbeatRequest, HeartbeatResponse]
+type ControlPlaneService_HeartbeatServer = grpc.BidiStreamingServer[HeartbeatRequest, HeartbeatResponse]
 
-func _ControlPlane_UpdateMethods_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ControlPlaneService_UpdateMethods_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateMethodsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControlPlaneServer).UpdateMethods(ctx, in)
+		return srv.(ControlPlaneServiceServer).UpdateMethods(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ControlPlane_UpdateMethods_FullMethodName,
+		FullMethod: ControlPlaneService_UpdateMethods_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControlPlaneServer).UpdateMethods(ctx, req.(*UpdateMethodsRequest))
+		return srv.(ControlPlaneServiceServer).UpdateMethods(ctx, req.(*UpdateMethodsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ControlPlane_ServiceDesc is the grpc.ServiceDesc for ControlPlane service.
+// ControlPlaneService_ServiceDesc is the grpc.ServiceDesc for ControlPlaneService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ControlPlane_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc_mesh.rpc.v1.ControlPlane",
-	HandlerType: (*ControlPlaneServer)(nil),
+var ControlPlaneService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc_mesh.rpc.v1.ControlPlaneService",
+	HandlerType: (*ControlPlaneServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "RegisterPeer",
-			Handler:    _ControlPlane_RegisterPeer_Handler,
+			Handler:    _ControlPlaneService_RegisterPeer_Handler,
 		},
 		{
 			MethodName: "UpdateMethods",
-			Handler:    _ControlPlane_UpdateMethods_Handler,
+			Handler:    _ControlPlaneService_UpdateMethods_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Heartbeat",
-			Handler:       _ControlPlane_Heartbeat_Handler,
+			Handler:       _ControlPlaneService_Heartbeat_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
@@ -196,137 +196,137 @@ var ControlPlane_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	InvokePlane_Invoke_FullMethodName       = "/grpc_mesh.rpc.v1.InvokePlane/Invoke"
-	InvokePlane_InvokeStream_FullMethodName = "/grpc_mesh.rpc.v1.InvokePlane/InvokeStream"
+	InvokePlaneService_Invoke_FullMethodName       = "/grpc_mesh.rpc.v1.InvokePlaneService/Invoke"
+	InvokePlaneService_InvokeStream_FullMethodName = "/grpc_mesh.rpc.v1.InvokePlaneService/InvokeStream"
 )
 
-// InvokePlaneClient is the client API for InvokePlane service.
+// InvokePlaneServiceClient is the client API for InvokePlaneService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// InvokePlane handles reverse RPC invocations.
-type InvokePlaneClient interface {
+// InvokePlaneService handles reverse RPC invocations.
+type InvokePlaneServiceClient interface {
 	Invoke(ctx context.Context, in *InvokeRequest, opts ...grpc.CallOption) (*InvokeResponse, error)
-	InvokeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[InvokeRequest, InvokeResponse], error)
+	InvokeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[InvokeStreamRequest, InvokeStreamResponse], error)
 }
 
-type invokePlaneClient struct {
+type invokePlaneServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewInvokePlaneClient(cc grpc.ClientConnInterface) InvokePlaneClient {
-	return &invokePlaneClient{cc}
+func NewInvokePlaneServiceClient(cc grpc.ClientConnInterface) InvokePlaneServiceClient {
+	return &invokePlaneServiceClient{cc}
 }
 
-func (c *invokePlaneClient) Invoke(ctx context.Context, in *InvokeRequest, opts ...grpc.CallOption) (*InvokeResponse, error) {
+func (c *invokePlaneServiceClient) Invoke(ctx context.Context, in *InvokeRequest, opts ...grpc.CallOption) (*InvokeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(InvokeResponse)
-	err := c.cc.Invoke(ctx, InvokePlane_Invoke_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, InvokePlaneService_Invoke_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *invokePlaneClient) InvokeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[InvokeRequest, InvokeResponse], error) {
+func (c *invokePlaneServiceClient) InvokeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[InvokeStreamRequest, InvokeStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &InvokePlane_ServiceDesc.Streams[0], InvokePlane_InvokeStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &InvokePlaneService_ServiceDesc.Streams[0], InvokePlaneService_InvokeStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[InvokeRequest, InvokeResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[InvokeStreamRequest, InvokeStreamResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type InvokePlane_InvokeStreamClient = grpc.BidiStreamingClient[InvokeRequest, InvokeResponse]
+type InvokePlaneService_InvokeStreamClient = grpc.BidiStreamingClient[InvokeStreamRequest, InvokeStreamResponse]
 
-// InvokePlaneServer is the server API for InvokePlane service.
-// All implementations must embed UnimplementedInvokePlaneServer
+// InvokePlaneServiceServer is the server API for InvokePlaneService service.
+// All implementations must embed UnimplementedInvokePlaneServiceServer
 // for forward compatibility.
 //
-// InvokePlane handles reverse RPC invocations.
-type InvokePlaneServer interface {
+// InvokePlaneService handles reverse RPC invocations.
+type InvokePlaneServiceServer interface {
 	Invoke(context.Context, *InvokeRequest) (*InvokeResponse, error)
-	InvokeStream(grpc.BidiStreamingServer[InvokeRequest, InvokeResponse]) error
-	mustEmbedUnimplementedInvokePlaneServer()
+	InvokeStream(grpc.BidiStreamingServer[InvokeStreamRequest, InvokeStreamResponse]) error
+	mustEmbedUnimplementedInvokePlaneServiceServer()
 }
 
-// UnimplementedInvokePlaneServer must be embedded to have
+// UnimplementedInvokePlaneServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedInvokePlaneServer struct{}
+type UnimplementedInvokePlaneServiceServer struct{}
 
-func (UnimplementedInvokePlaneServer) Invoke(context.Context, *InvokeRequest) (*InvokeResponse, error) {
+func (UnimplementedInvokePlaneServiceServer) Invoke(context.Context, *InvokeRequest) (*InvokeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Invoke not implemented")
 }
-func (UnimplementedInvokePlaneServer) InvokeStream(grpc.BidiStreamingServer[InvokeRequest, InvokeResponse]) error {
+func (UnimplementedInvokePlaneServiceServer) InvokeStream(grpc.BidiStreamingServer[InvokeStreamRequest, InvokeStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method InvokeStream not implemented")
 }
-func (UnimplementedInvokePlaneServer) mustEmbedUnimplementedInvokePlaneServer() {}
-func (UnimplementedInvokePlaneServer) testEmbeddedByValue()                     {}
+func (UnimplementedInvokePlaneServiceServer) mustEmbedUnimplementedInvokePlaneServiceServer() {}
+func (UnimplementedInvokePlaneServiceServer) testEmbeddedByValue()                            {}
 
-// UnsafeInvokePlaneServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to InvokePlaneServer will
+// UnsafeInvokePlaneServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to InvokePlaneServiceServer will
 // result in compilation errors.
-type UnsafeInvokePlaneServer interface {
-	mustEmbedUnimplementedInvokePlaneServer()
+type UnsafeInvokePlaneServiceServer interface {
+	mustEmbedUnimplementedInvokePlaneServiceServer()
 }
 
-func RegisterInvokePlaneServer(s grpc.ServiceRegistrar, srv InvokePlaneServer) {
-	// If the following call panics, it indicates UnimplementedInvokePlaneServer was
+func RegisterInvokePlaneServiceServer(s grpc.ServiceRegistrar, srv InvokePlaneServiceServer) {
+	// If the following call panics, it indicates UnimplementedInvokePlaneServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&InvokePlane_ServiceDesc, srv)
+	s.RegisterService(&InvokePlaneService_ServiceDesc, srv)
 }
 
-func _InvokePlane_Invoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _InvokePlaneService_Invoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InvokeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(InvokePlaneServer).Invoke(ctx, in)
+		return srv.(InvokePlaneServiceServer).Invoke(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: InvokePlane_Invoke_FullMethodName,
+		FullMethod: InvokePlaneService_Invoke_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InvokePlaneServer).Invoke(ctx, req.(*InvokeRequest))
+		return srv.(InvokePlaneServiceServer).Invoke(ctx, req.(*InvokeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _InvokePlane_InvokeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(InvokePlaneServer).InvokeStream(&grpc.GenericServerStream[InvokeRequest, InvokeResponse]{ServerStream: stream})
+func _InvokePlaneService_InvokeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(InvokePlaneServiceServer).InvokeStream(&grpc.GenericServerStream[InvokeStreamRequest, InvokeStreamResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type InvokePlane_InvokeStreamServer = grpc.BidiStreamingServer[InvokeRequest, InvokeResponse]
+type InvokePlaneService_InvokeStreamServer = grpc.BidiStreamingServer[InvokeStreamRequest, InvokeStreamResponse]
 
-// InvokePlane_ServiceDesc is the grpc.ServiceDesc for InvokePlane service.
+// InvokePlaneService_ServiceDesc is the grpc.ServiceDesc for InvokePlaneService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var InvokePlane_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc_mesh.rpc.v1.InvokePlane",
-	HandlerType: (*InvokePlaneServer)(nil),
+var InvokePlaneService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc_mesh.rpc.v1.InvokePlaneService",
+	HandlerType: (*InvokePlaneServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Invoke",
-			Handler:    _InvokePlane_Invoke_Handler,
+			Handler:    _InvokePlaneService_Invoke_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "InvokeStream",
-			Handler:       _InvokePlane_InvokeStream_Handler,
+			Handler:       _InvokePlaneService_InvokeStream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

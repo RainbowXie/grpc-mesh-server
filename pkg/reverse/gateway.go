@@ -162,7 +162,7 @@ func (g *Gateway) Invoke(
 	defer conn.Close()
 
 	// Create client
-	client := rpc.NewInvokePlaneClient(conn)
+	client := rpc.NewInvokePlaneServiceClient(conn)
 
 	// Invoke
 	resp, err := client.Invoke(ctx, req)
@@ -233,13 +233,13 @@ func (g *Gateway) Invoke(
 func (g *Gateway) InvokeStream(
 	ctx context.Context,
 	peerID registry.PeerID,
-) (rpc.InvokePlane_InvokeStreamClient, func() error, error) {
+) (rpc.InvokePlaneService_InvokeStreamClient, func() error, error) {
 	conn, err := g.dialer.DialPeer(ctx, peerID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to dial peer: %w", err)
 	}
 
-	client := rpc.NewInvokePlaneClient(conn)
+	client := rpc.NewInvokePlaneServiceClient(conn)
 	stream, err := client.InvokeStream(ctx)
 	if err != nil {
 		conn.Close()

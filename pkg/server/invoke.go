@@ -15,7 +15,7 @@ import (
 
 // InvokeProxy handles external invoke requests and routes them to internal nodes
 type InvokeProxy struct {
-	rpc.UnimplementedInvokePlaneServer
+	rpc.UnimplementedInvokePlaneServiceServer
 	sessionManager *registry.SessionManager
 	gateway        *reverse.Gateway
 	acl            ACLPolicy
@@ -134,7 +134,7 @@ func (p *InvokeProxy) Invoke(
 
 // InvokeStream handles streaming invoke requests
 func (p *InvokeProxy) InvokeStream(
-	stream rpc.InvokePlane_InvokeStreamServer,
+	stream rpc.InvokePlaneService_InvokeStreamServer,
 ) error {
 	ctx := stream.Context()
 
@@ -144,12 +144,24 @@ func (p *InvokeProxy) InvokeStream(
 			return err
 		}
 
+		// Convert InvokeStreamRequest to InvokeRequest
+		invokeReq := &rpc.InvokeRequest{
+			PeerId:        req.PeerId,
+			Method:        req.Method,
+			Payload:       req.Payload,
+			CorrelationId: req.CorrelationId,
+			TimeoutMs:     req.TimeoutMs,
+		}
+
 		// Process each request
-		resp, err := p.Invoke(ctx, req)
+		resp, err := p.Invoke(ctx, invokeReq)
+
+		var streamResp *rpc.InvokeStreamResponse
+
 		if err != nil {
 			// Convert error to response
 			st, _ := status.FromError(err)
-			resp = &rpc.InvokeResponse{
+			streamResp = &rpc.InvokeStreamResponse{
 				PeerId:        req.PeerId,
 				Method:        req.Method,
 				Success:       false,
@@ -159,10 +171,21 @@ func (p *InvokeProxy) InvokeStream(
 					Message: st.Message(),
 				},
 			}
+		} else {
+			// Convert InvokeResponse to InvokeStreamResponse
+			streamResp = &rpc.InvokeStreamResponse{
+				PeerId:        resp.PeerId,
+				Method:        resp.Method,
+				Result:        resp.Result,
+				Success:       resp.Success,
+				Error:         resp.Error,
+				CorrelationId: resp.CorrelationId,
+				ElapsedMs:     resp.ElapsedMs,
+			}
 		}
 
 		// Send response
-		if err := stream.Send(resp); err != nil {
+		if err := stream.Send(streamResp); err != nil {
 			return err
 		}
 	}
