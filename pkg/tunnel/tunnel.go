@@ -249,7 +249,7 @@ func (s *Server) handleConn(conn net.Conn) {
 	peerID := registry.PeerID(handshake.NodeID)
 
 	// Register session
-	_, err = s.registry.RegisterSession(peerID, handshake, session)
+	state, err := s.registry.RegisterSession(peerID, handshake, session)
 	if err != nil {
 		s.logger.Error("failed to register session", zap.Error(err))
 		return
@@ -266,7 +266,9 @@ func (s *Server) handleConn(conn net.Conn) {
 		s.logger.Info("session closed", zap.String("peer_id", string(peerID)))
 	}
 
-	s.registry.Remove(peerID)
+	// Identity-conditional: a replacement under the same peerId must survive
+	// this handler exiting after RegisterSession already closed the old yamux.
+	s.registry.RemoveIfCurrent(peerID, state)
 }
 
 func (s *Server) loadTLSConfig() error {

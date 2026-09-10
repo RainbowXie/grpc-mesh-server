@@ -321,6 +321,29 @@ func (sm *SessionManager) Remove(peerID PeerID) error {
 	return nil
 }
 
+// RemoveIfCurrent deletes peerID only when the map still holds this exact
+// SessionState. A replaced connection's handler must not Close/delete the
+// successor that RegisterSession already stored under the same peer ID.
+func (sm *SessionManager) RemoveIfCurrent(peerID PeerID, session *SessionState) error {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	current, ok := sm.sessions[peerID]
+	if !ok {
+		return ErrSessionNotFound
+	}
+	if current != session {
+		sm.logger.Info("skipping stale session remove",
+			zap.String("peer_id", string(peerID)))
+		return nil
+	}
+
+	current.Close()
+	delete(sm.sessions, peerID)
+	sm.logger.Info("removed session", zap.String("peer_id", string(peerID)))
+	return nil
+}
+
 // List returns snapshots of all currently registered sessions.
 //
 // The returned sessions are snapshots taken at the time of the call and will
