@@ -64,8 +64,11 @@ func (e *Exporter) Start() error {
 
 	e.logger.Info("starting metrics server", zap.String("addr", e.addr))
 
+	// Capture before spawning: Stop() nils e.server under the mutex, and the
+	// goroutine must not dereference it after that point.
+	srv := e.server
 	go func() {
-		if err := e.server.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			e.logger.Error("metrics server error", zap.Error(err))
 		}
 	}()
