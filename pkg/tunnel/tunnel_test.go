@@ -19,7 +19,7 @@ import (
 func TestDevBranchGeneratesUsableCert(t *testing.T) {
 	logger := zap.NewNop()
 	srv, err := New("127.0.0.1:0", "", "", "",
-		control.NewAuthPolicy(false, nil), registry.New(logger), logger)
+		control.NewAuthPolicy(false, nil, nil), registry.New(logger), logger)
 	if err != nil {
 		t.Fatalf("tunnel.New without cert files: %v", err)
 	}
@@ -28,6 +28,105 @@ func TestDevBranchGeneratesUsableCert(t *testing.T) {
 	if len(srv.tlsConfig.Certificates) == 0 {
 		t.Fatal("dev branch produced no certificate — TLS handshakes can never complete")
 	}
+}
+
+// dialAndHandshake opens a yamux client stream against a fresh handleConn
+// and sends one handshake claiming the given identity.
+func dialAndHandshake(t *testing.T, srv *Server, nodeID, token string) *yamux.Stream {
+	t.Helper()
+
+	serverConn, clientConn := net.Pipe()
+	t.Cleanup(func() { clientConn.Close() })
+
+	// acceptLoop normally does wg.Add(1) before spawning handleConn; calling
+	// it directly must mirror that or the deferred Done() underflows.
+	srv.wg.Add(1)
+	go srv.handleConn(serverConn)
+
+	sess, err := yamux.Client(clientConn, yamux.DefaultConfig())
+	if err != nil {
+		t.Fatalf("yamux client: %v", err)
+	}
+	t.Cleanup(func() { sess.Close() })
+
+	stream, err := sess.OpenStream()
+	if err != nil {
+		t.Fatalf("open control stream: %v", err)
+	}
+
+	handshake := map[string]any{
+		"node_id":            nodeID,
+		"token":              token,
+		"version":            "1.0.0",
+		"supported_features": []string{"yamux-reverse-grpc"},
+		"timestamp_unix_sec": time.Now().Unix(),
+	}
+	if _, err := stream.Write(controlFrame(t, handshake)); err != nil {
+		t.Fatalf("write handshake: %v", err)
+	}
+	return stream
+}
+
+// waitFor polls cond until it holds or the deadline expires.
+func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if cond() {
+			return
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("condition not met within %v", timeout)
+}
+
+// TestHandleConnRejectsTokenUsedForWrongNode: with node-bound tokens, a
+// valid token presented under a different node_id must be rejected. This is
+// the impersonation path that previously let any token holder claim an
+// arbitrary peerId and replace that node's session.
+func TestHandleConnRejectsTokenUsedForWrongNode(t *testing.T) {
+	logger := zap.NewNop()
+	reg := registry.New(logger)
+	auth := control.NewAuthPolicy(true, nil, map[string]string{
+		"legit-node": "legit-token",
+	})
+
+	srv, err := New("127.0.0.1:0", "", "", "", auth, reg, logger)
+	if err != nil {
+		t.Fatalf("tunnel.New: %v", err)
+	}
+	defer srv.Stop()
+
+	stream := dialAndHandshake(t, srv, "victim-node", "legit-token")
+
+	// The handler rejects and closes the connection; the client sees EOF.
+	stream.SetReadDeadline(time.Now().Add(2 * time.Second))
+	buf := make([]byte, 16)
+	if _, err := stream.Read(buf); err == nil {
+		t.Fatal("impersonated handshake was not closed by the server")
+	}
+
+	if reg.Size() != 0 {
+		t.Fatalf("impersonated session was registered (sessions=%d)", reg.Size())
+	}
+}
+
+// TestHandleConnLegacySharedTokenAcceptsAnyNode documents the legacy
+// allowed_tokens mode: identity is not bound, so any token holder may claim
+// any node_id. Kept for backward compatibility; see AuthConfig.NodeTokens.
+func TestHandleConnLegacySharedTokenAcceptsAnyNode(t *testing.T) {
+	logger := zap.NewNop()
+	reg := registry.New(logger)
+	auth := control.NewAuthPolicy(true, []string{"shared-token"}, nil)
+
+	srv, err := New("127.0.0.1:0", "", "", "", auth, reg, logger)
+	if err != nil {
+		t.Fatalf("tunnel.New: %v", err)
+	}
+	defer srv.Stop()
+
+	dialAndHandshake(t, srv, "some-random-node", "shared-token")
+	waitFor(t, 2*time.Second, func() bool { return reg.Size() == 1 })
 }
 
 // controlFrame wraps a JSON payload in the 4-byte big-endian length prefix
@@ -55,7 +154,7 @@ func TestHandleConnConsumesHeartbeatsBeyondStreamWindow(t *testing.T) {
 	// nop logger here — assertions carry the verification.
 	logger := zap.NewNop()
 	reg := registry.New(logger)
-	auth := control.NewAuthPolicy(false, nil)
+	auth := control.NewAuthPolicy(false, nil, nil)
 
 	srv, err := New("127.0.0.1:0", "", "", "", auth, reg, logger)
 	if err != nil {
@@ -63,37 +162,7 @@ func TestHandleConnConsumesHeartbeatsBeyondStreamWindow(t *testing.T) {
 	}
 	defer srv.Stop()
 
-	serverConn, clientConn := net.Pipe()
-	defer clientConn.Close()
-
-	// acceptLoop normally does wg.Add(1) before spawning handleConn; calling
-	// it directly must mirror that or the deferred Done() underflows.
-	srv.wg.Add(1)
-	go srv.handleConn(serverConn)
-
-	sess, err := yamux.Client(clientConn, yamux.DefaultConfig())
-	if err != nil {
-		t.Fatalf("yamux client: %v", err)
-	}
-	defer sess.Close()
-
-	stream, err := sess.OpenStream()
-	if err != nil {
-		t.Fatalf("open control stream: %v", err)
-	}
-
-	// Handshake in the raw JSON shape Rust nodes send (Handshake::to_payload):
-	// field names differ from the Go ControlMessage wrapper on purpose.
-	handshake := map[string]any{
-		"node_id":            "test-node",
-		"token":              "test-token",
-		"version":            "1.0.0",
-		"supported_features": []string{"yamux-reverse-grpc"},
-		"timestamp_unix_sec": time.Now().Unix(),
-	}
-	if _, err := stream.Write(controlFrame(t, handshake)); err != nil {
-		t.Fatalf("write handshake: %v", err)
-	}
+	stream := dialAndHandshake(t, srv, "test-node", "test-token")
 
 	// ~120 B per frame; 4000 frames ≈ 480 KiB > 256 KiB window.
 	stream.SetWriteDeadline(time.Now().Add(10 * time.Second))

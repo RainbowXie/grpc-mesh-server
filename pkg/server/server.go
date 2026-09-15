@@ -98,7 +98,12 @@ func New(cfg *config.Config) (*Server, error) {
 
 	logger := logging.L()
 	reg := registry.New(logger)
-	authPolicy := control.NewAuthPolicy(cfg.Auth.Enabled, cfg.Auth.AllowedTokens)
+	authPolicy := control.NewAuthPolicy(cfg.Auth.Enabled, cfg.Auth.AllowedTokens, cfg.Auth.NodeTokens)
+	if cfg.Auth.Enabled && !authPolicy.IdentityBound() {
+		logger.Warn("auth.enabled is configured with shared allowed_tokens only: " +
+			"tokens are not bound to node identities, so any token holder can claim any node_id. " +
+			"Configure auth.node_tokens (node_id -> token) to bind identity.")
+	}
 
 	tunnelSrv, err := tunnel.New(
 		cfg.Listener.Address,

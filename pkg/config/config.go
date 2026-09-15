@@ -88,7 +88,7 @@ type LoggingConfig struct {
 // AuthConfig holds authentication and authorization settings.
 //
 // When authentication is enabled, mesh nodes must provide a valid token
-// in their handshake message. Tokens are matched against the allowed list.
+// in their handshake message.
 type AuthConfig struct {
 	// Enabled controls whether authentication is required.
 	// If false, all connections are accepted without token validation.
@@ -98,7 +98,24 @@ type AuthConfig struct {
 	// AllowedTokens is the list of valid authentication tokens.
 	// Nodes must present one of these tokens during handshake.
 	// Only used when Enabled is true.
+	//
+	// Tokens in this list are NOT bound to node identities: any holder of a
+	// token may claim any node_id and replace that node's session. Prefer
+	// NodeTokens for per-node credentials.
 	AllowedTokens []string `mapstructure:"allowed_tokens"`
+
+	// NodeTokens maps node_id to the token issued to that node. When non-
+	// empty it takes precedence over AllowedTokens, and a handshake is only
+	// accepted when the claimed node_id matches the token's binding.
+	//
+	// Example:
+	//
+	//	auth:
+	//	  enabled: true
+	//	  node_tokens:
+	//	    node-a: token-for-node-a
+	//	    node-b: token-for-node-b
+	NodeTokens map[string]string `mapstructure:"node_tokens"`
 }
 
 // Load loads server configuration from a file or uses defaults.

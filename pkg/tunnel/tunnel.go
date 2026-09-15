@@ -257,8 +257,10 @@ func (s *Server) handleConn(conn net.Conn) {
 		return
 	}
 
-	// Authorize
-	if err := s.authPolicy.Authorize(handshake.Token); err != nil {
+	// Authorize the identity claim, not just the token: with node-bound
+	// tokens this is what prevents a token holder from impersonating (and
+	// replacing) another node's session.
+	if err := s.authPolicy.AuthorizeNode(handshake.NodeID, handshake.Token); err != nil {
 		s.logger.Warn("authorization failed",
 			zap.String("node_id", handshake.NodeID),
 			zap.Error(err))
