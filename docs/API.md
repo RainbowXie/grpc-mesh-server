@@ -327,7 +327,66 @@ manager.Unsubscribe(eventCh)
 
 ---
 
-### 3. MethodRegistry
+### 3. Gateway（反向调用节点）
+
+`pkg/reverse.Gateway` 是控制平面对已连接节点发起调用的入口，提供两条路径：
+
+#### 通用分发调用 Invoke
+
+方法名字符串 + protobuf 编码的 payload 字节，节点侧由 `MethodRegistry` 分发：
+
+```go
+import (
+    "github.com/grpc-mesh/grpc-mesh-server/pkg/registry"
+    "github.com/grpc-mesh/grpc-mesh-server/pkg/reverse"
+)
+
+gateway := reverse.NewGateway(sessionManager, logger)
+
+resp, err := gateway.Invoke(ctx,
+    registry.PeerID("calculator-service"),
+    &rpc.InvokeRequest{
+        PeerId:  "calculator-service",
+        Method:  "calculator.v1.Calculator/Add",
+        Payload: payload, // proto.Marshal 后的字节
+        TimeoutMs: 5000,
+    })
+// 错误封装在 resp.Error（ErrorDetail）中，err 仅在基础设施故障时非空
+```
+
+#### 类型化直调 Dial
+
+对节点上 proto 定义的类型化服务，用你自己的生成客户端直调；错误保留 gRPC 状态语义
+（如节点返回 invalid_argument 时收到 InvalidArgument）：
+
+```go
+// 连接建立在节点会话的一条 yamux 流上，用完必须 Close
+conn, err := gateway.Dial(ctx, registry.PeerID("calculator-service"))
+if err != nil {
+    // 节点未注册或不可达
+    return err
+}
+defer conn.Close()
+
+client := pb.NewCalculatorClient(conn) // pb 为按节点 proto 生成的客户端
+resp, err := client.Add(ctx, &pb.CalcRequest{A: 10, B: 5})
+```
+
+节点未挂载被调用的服务时返回 gRPC `Unimplemented`。经 `server.Server` 使用时以
+`ReverseGateway()` 取得实例。
+
+#### 查询节点上报的方法清单
+
+节点在握手 metadata 中以 `mesh.methods`（逗号分隔）上报方法名，会话侧：
+
+```go
+session, _ := manager.Get(registry.PeerID("calculator-service"))
+methods := session.Methods() // []string；未上报时为空
+```
+
+---
+
+### 4. MethodRegistry
 
 方法注册表，实现服务发现功能。
 
@@ -415,7 +474,7 @@ log.Printf("Average methods per peer: %.2f", stats.AverageMethodsPerPeer)
 
 ---
 
-### 4. InvokeProxy
+### 5. InvokeProxy
 
 代理服务，处理外部调用并路由到内网节点。
 
