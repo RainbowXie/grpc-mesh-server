@@ -8,6 +8,7 @@ import (
 	"github.com/grpc-mesh/grpc-mesh-server/pkg/registry"
 	"github.com/grpc-mesh/grpc-mesh-server/pkg/rpc"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -265,4 +266,16 @@ func (g *Gateway) ensureDeadline(ctx context.Context, timeoutMs uint32) (context
 	}
 
 	return context.WithCancel(ctx)
+}
+
+// Dial opens a gRPC connection to a peer over its tunnel session.
+//
+// Unlike Invoke, which routes through the generic InvokePlane dispatch
+// (string method name + opaque payload), Dial hands the caller a plain
+// *grpc.ClientConn so they can use their own generated client stubs against
+// services the node serves natively on the tunnel. The connection runs over
+// one yamux stream of the peer's session; the caller must Close it when
+// done.
+func (g *Gateway) Dial(ctx context.Context, peerID registry.PeerID) (*grpc.ClientConn, error) {
+	return g.dialer.DialPeer(ctx, peerID)
 }

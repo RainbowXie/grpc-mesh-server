@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -98,6 +99,38 @@ func (s *SessionState) snapshot() *SessionState {
 		ConnectedAt:   s.ConnectedAt,
 		LastHeartbeat: s.LastHeartbeat,
 	}
+}
+
+// meshMethodsKey is the handshake metadata key that carries the
+// comma-separated list of method names a node reports at connect time.
+const meshMethodsKey = "mesh.methods"
+
+// Methods returns the method names the node reported in its handshake
+// metadata. It is empty when the node did not report any.
+func (s *SessionState) Methods() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return parseMeshMethods(s.Handshake)
+}
+
+func parseMeshMethods(h *control.Handshake) []string {
+	if h == nil {
+		return nil
+	}
+	raw := h.Metadata[meshMethodsKey]
+	if raw == "" {
+		return nil
+	}
+
+	parts := strings.Split(raw, ",")
+	methods := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			methods = append(methods, trimmed)
+		}
+	}
+	return methods
 }
 
 // SessionStats contains aggregate statistics about all managed sessions.
