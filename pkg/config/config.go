@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -153,8 +154,23 @@ func Load(path string) (*Config, error) {
 		v.AddConfigPath(".")
 	}
 
-	// Read environment variables
+	// Environment overrides: viper looks up env keys verbatim, so nested keys
+	// like server.grpc_address must be mapped to SERVER_GRPC_ADDRESS. BindEnv
+	// registers each key explicitly because Unmarshal skips env-only values.
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
+	for _, key := range []string{
+		"server.grpc_address",
+		"server.metrics_address",
+		"listener.address",
+		"listener.cert_file",
+		"listener.key_file",
+		"listener.ca_file",
+		"logging.level",
+		"auth.enabled",
+	} {
+		_ = v.BindEnv(key)
+	}
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok && path == "" {
@@ -169,7 +185,14 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	// Validate
+	// A half-configured pair passes file checks but can never complete a TLS
+	// handshake; reject it at load time with an actionable message.
+	if (cfg.Listener.CertFile == "") != (cfg.Listener.KeyFile == "") {
+		return nil, fmt.Errorf(
+			"listener.cert_file and listener.key_file must be configured together (got cert=%q key=%q)",
+			cfg.Listener.CertFile, cfg.Listener.KeyFile)
+	}
+
 	if cfg.Listener.CertFile != "" {
 		if _, err := os.Stat(cfg.Listener.CertFile); err != nil {
 			return nil, fmt.Errorf("cert file not found: %w", err)

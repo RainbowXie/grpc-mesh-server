@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -23,6 +25,7 @@ type Exporter struct {
 	addr   string
 	server *http.Server
 	logger *zap.Logger
+	mu     sync.Mutex
 }
 
 // NewExporter creates a new metrics exporter
@@ -33,8 +36,24 @@ func NewExporter(addr string, logger *zap.Logger) *Exporter {
 	}
 }
 
-// Start starts the metrics server
+// Start binds the metrics endpoint synchronously and then serves it in the
+// background. Binding errors (e.g. port already in use) are returned to the
+// caller instead of surfacing as an async log line after a "successful"
+// startup. A second Start returns ErrAlreadyStarted instead of silently
+// leaking the first listener.
 func (e *Exporter) Start() error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if e.server != nil {
+		return ErrAlreadyStarted
+	}
+
+	ln, err := net.Listen("tcp", e.addr)
+	if err != nil {
+		return fmt.Errorf("metrics listener on %s: %w", e.addr, err)
+	}
+
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
@@ -46,7 +65,7 @@ func (e *Exporter) Start() error {
 	e.logger.Info("starting metrics server", zap.String("addr", e.addr))
 
 	go func() {
-		if err := e.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := e.server.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			e.logger.Error("metrics server error", zap.Error(err))
 		}
 	}()
@@ -56,10 +75,15 @@ func (e *Exporter) Start() error {
 
 // Stop stops the metrics server
 func (e *Exporter) Stop() error {
-	if e.server != nil {
-		return e.server.Close()
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if e.server == nil {
+		return nil
 	}
-	return nil
+	srv := e.server
+	e.server = nil
+	return srv.Close()
 }
 
 // TunnelMetrics holds tunnel-related metrics

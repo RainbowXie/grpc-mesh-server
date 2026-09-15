@@ -70,6 +70,8 @@ func parseLevel(level string) (zapcore.Level, error) {
 		return zapcore.WarnLevel, nil
 	case "error":
 		return zapcore.ErrorLevel, nil
+	case "fatal":
+		return zapcore.FatalLevel, nil
 	default:
 		return zapcore.InfoLevel, fmt.Errorf("unknown log level: %s", level)
 	}

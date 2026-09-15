@@ -13,6 +13,23 @@ import (
 	"go.uber.org/zap"
 )
 
+// TestDevBranchGeneratesUsableCert: with no cert files configured the server
+// previously built a tls.Config with no certificate at all — every handshake
+// was doomed. The dev branch must carry a usable (ephemeral) certificate.
+func TestDevBranchGeneratesUsableCert(t *testing.T) {
+	logger := zap.NewNop()
+	srv, err := New("127.0.0.1:0", "", "", "",
+		control.NewAuthPolicy(false, nil), registry.New(logger), logger)
+	if err != nil {
+		t.Fatalf("tunnel.New without cert files: %v", err)
+	}
+	defer srv.Stop()
+
+	if len(srv.tlsConfig.Certificates) == 0 {
+		t.Fatal("dev branch produced no certificate — TLS handshakes can never complete")
+	}
+}
+
 // controlFrame wraps a JSON payload in the 4-byte big-endian length prefix
 // used by the control-stream protocol on both sides.
 func controlFrame(t *testing.T, v any) []byte {

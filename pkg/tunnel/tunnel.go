@@ -2,10 +2,16 @@ package tunnel
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -361,10 +367,18 @@ func (s *Server) readControlLoop(
 
 func (s *Server) loadTLSConfig() error {
 	if s.certFile == "" || s.keyFile == "" {
-		// Use self-signed cert for development
-		s.logger.Warn("no TLS cert provided, using insecure config")
+		// Dev fallback: the previous empty Certificates config could never
+		// complete a handshake. Serve an ephemeral self-signed pair instead —
+		// clients must still opt out of verification (insecure_skip_verify)
+		// or preload the cert out-of-band, matching the documented dev flow.
+		cert, err := generateDevCertificate()
+		if err != nil {
+			return fmt.Errorf("failed to generate dev TLS certificate: %w", err)
+		}
+		s.logger.Warn("no TLS cert provided, generated ephemeral self-signed certificate for development use only")
 		s.tlsConfig = &tls.Config{
-			MinVersion: tls.VersionTLS12,
+			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
 		}
 		return nil
 	}
@@ -451,6 +465,41 @@ func tlsVersionNames(vs []uint16) []string {
 		out = append(out, tlsVersionName(v))
 	}
 	return out
+}
+
+// generateDevCertificate creates a fresh in-memory self-signed certificate
+// valid for localhost/loopback, used only when no cert files are configured.
+func generateDevCertificate() (tls.Certificate, error) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	serial, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	tmpl := x509.Certificate{
+		SerialNumber: serial,
+		Subject:      pkix.Name{CommonName: "grpc-mesh-dev"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		DNSNames:     []string{"localhost"},
+		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+	}
+
+	der, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, &key.PublicKey, key)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+
+	return tls.Certificate{
+		Certificate: [][]byte{der},
+		PrivateKey:  key,
+	}, nil
 }
 
 func (s *Server) watchCerts() {
