@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/grpc-mesh/grpc-mesh-server/pkg/config"
 	"github.com/grpc-mesh/grpc-mesh-server/pkg/control"
@@ -45,6 +46,9 @@ import (
 //	<-ctx.Done()
 type Server struct {
 	cfg *config.Config
+
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	registry       *registry.SessionManager
 	tunnelServer   *tunnel.Server
@@ -109,6 +113,12 @@ func New(cfg *config.Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to create tunnel server: %w", err)
 	}
 
+	// Staleness cleanup was previously never started: dead sessions stayed
+	// registered forever. Tie its lifetime to the server's own lifecycle;
+	// created after the last failing path so cancel is never leaked.
+	ctx, cancel := context.WithCancel(context.Background())
+	reg.StartCleanupLoop(ctx, 30*time.Second, 2*time.Minute)
+
 	gateway := reverse.NewGateway(reg, logger)
 	grpcSrv := grpc.NewServer()
 	metricsSrv := metrics.NewExporter(cfg.Server.MetricsAddress, logger)
@@ -121,6 +131,8 @@ func New(cfg *config.Config) (*Server, error) {
 
 	return &Server{
 		cfg:            cfg,
+		ctx:            ctx,
+		cancel:         cancel,
 		registry:       reg,
 		tunnelServer:   tunnelSrv,
 		grpcServer:     grpcSrv,
@@ -200,6 +212,8 @@ func (s *Server) Start() error {
 //	srv.Stop()
 func (s *Server) Stop() {
 	s.logger.Info("stopping server")
+
+	s.cancel()
 
 	if s.grpcServer != nil {
 		s.grpcServer.GracefulStop()

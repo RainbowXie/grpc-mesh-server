@@ -3,7 +3,9 @@ package tunnel
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"time"
@@ -270,16 +272,91 @@ func (s *Server) handleConn(conn net.Conn) {
 		zap.String("peer_id", string(peerID)),
 		zap.String("version", handshake.Version))
 
-	// Keep connection alive until session ends
+	// Consume control frames until the session ends. Without this loop the
+	// node's heartbeat writes exhaust the yamux stream window (~256 KiB) and
+	// its heartbeat task freezes; the registry's staleness clock also never
+	// advances, so cleanup would evict healthy sessions.
+	readDone := make(chan error, 1)
+	go s.readControlLoop(peerID, state, cs, readDone)
+
 	select {
 	case <-s.ctx.Done():
 	case <-session.CloseChan():
 		s.logger.Info("session closed", zap.String("peer_id", string(peerID)))
+	case err := <-readDone:
+		if errors.Is(err, io.EOF) {
+			s.logger.Info("node closed control stream", zap.String("peer_id", string(peerID)))
+		} else {
+			s.logger.Warn("control stream read failed",
+				zap.String("peer_id", string(peerID)),
+				zap.Error(err))
+		}
 	}
+
+	// Unblock the read loop and release the stream before deregistering.
+	cs.Close()
+	session.Close()
+	<-readDone
 
 	// Identity-conditional: a replacement under the same peerId must survive
 	// this handler exiting after RegisterSession already closed the old yamux.
 	s.registry.RemoveIfCurrent(peerID, state)
+}
+
+// controlReadIdleTimeout bounds how long the read loop may sit without any
+// frame. It matches the registry cleanup's staleness window: a control
+// stream silent for this long is a dead node by definition.
+const controlReadIdleTimeout = 2 * time.Minute
+
+// readControlLoop consumes frames from the session's control stream until
+// the stream errors, reaches EOF, or goes silent past the read deadline.
+// Heartbeats refresh the session's staleness clock; other message types are
+// logged (there is no consumer wired for them yet).
+func (s *Server) readControlLoop(
+	peerID registry.PeerID,
+	state *registry.SessionState,
+	cs *control.ControlStream,
+	done chan<- error,
+) {
+	cs.SetDeadline(controlReadIdleTimeout)
+
+	for {
+		msg, err := cs.ReceiveControlMessageRaw()
+		if err != nil {
+			done <- err
+			return
+		}
+
+		switch msg.Type {
+		case "heartbeat":
+			hb := msg.Heartbeat
+			if hb == nil {
+				s.logger.Warn("heartbeat message without payload",
+					zap.String("peer_id", string(peerID)))
+				continue
+			}
+			if hb.NodeID != string(peerID) {
+				s.logger.Warn("heartbeat node_id mismatch",
+					zap.String("expected", string(peerID)),
+					zap.String("got", hb.NodeID))
+				continue
+			}
+			// Frame arrival itself proves liveness inside an authenticated
+			// session; timestamp anomalies are only logged, never fatal.
+			if err := hb.Validate(); err != nil {
+				s.logger.Debug("heartbeat timestamp anomaly",
+					zap.Uint64("sequence", hb.Sequence),
+					zap.Error(err))
+			}
+			state.TouchHeartbeat()
+			s.logger.Debug("heartbeat received",
+				zap.Uint64("sequence", hb.Sequence))
+		default:
+			s.logger.Debug("control message received",
+				zap.String("type", msg.Type),
+				zap.String("peer_id", string(peerID)))
+		}
+	}
 }
 
 func (s *Server) loadTLSConfig() error {

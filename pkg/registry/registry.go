@@ -650,17 +650,26 @@ func (sm *SessionManager) Stats() SessionStats {
 	return stats
 }
 
-func (sm *SessionManager) prune() {
-	// Periodic cleanup
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
+// StartCleanupLoop runs periodic staleness cleanup until ctx is cancelled.
+// The SessionManager does not start it on its own; the process entrypoint
+// that owns the server lifecycle must call this exactly once, otherwise
+// dead sessions accumulate forever.
+func (sm *SessionManager) StartCleanupLoop(ctx context.Context, interval, maxAge time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
 
-	for range ticker.C {
-		removed := sm.Cleanup(2 * time.Minute)
-		if removed > 0 {
-			sm.logger.Info("pruned stale sessions", zap.Int("count", removed))
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if removed := sm.Cleanup(maxAge); removed > 0 {
+					sm.logger.Info("pruned stale sessions", zap.Int("count", removed))
+				}
+			}
 		}
-	}
+	}()
 }
 
 func cloneHandshake(h *control.Handshake) *control.Handshake {

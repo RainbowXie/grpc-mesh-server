@@ -182,6 +182,32 @@ func (cs *ControlStream) ReceiveControlMessage() (*ControlMessage, error) {
 	return &msg, nil
 }
 
+// ReceiveControlMessageRaw reads and decodes the next frame without the
+// strict Validate() checks. Long-lived read loops use this so that clock
+// skew in heartbeat timestamps and unknown forward-compatible message types
+// surface to the caller for logging instead of tearing down the stream.
+func (cs *ControlStream) ReceiveControlMessageRaw() (*ControlMessage, error) {
+	data, err := cs.ReceiveFrame()
+	if err != nil {
+		return nil, err
+	}
+
+	var msg ControlMessage
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal control message: %w", err)
+	}
+
+	return &msg, nil
+}
+
+// SetDeadline overrides the per-operation deadline applied to every frame
+// read/write. The 30s default suits the handshake; a session read loop that
+// only expects heartbeats needs a window aligned with its staleness policy.
+// It must be called before the loop starts reading.
+func (cs *ControlStream) SetDeadline(d time.Duration) {
+	cs.deadline = d
+}
+
 func (cs *ControlStream) applyDeadline() error {
 	if cs.deadline > 0 {
 		return cs.stream.SetDeadline(time.Now().Add(cs.deadline))
