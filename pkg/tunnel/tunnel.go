@@ -210,13 +210,23 @@ func (s *Server) handleConn(conn net.Conn) {
 	defer s.wg.Done()
 	defer conn.Close()
 
-	s.logger.Debug("accepted connection", zap.String("remote", conn.RemoteAddr().String()))
+	// Force handshake here so handshake failures get explicit, structured logs.
+	if tlsConn, ok := conn.(*tls.Conn); ok {
+		if err := tlsConn.Handshake(); err != nil {
+			fields := append(s.connectionFields(conn), zap.Error(err))
+			s.logger.Warn("tls handshake failed", fields...)
+			return
+		}
+	}
+
+	s.logger.Debug("accepted connection", s.connectionFields(conn)...)
 
 	// Create yamux session
 	yamuxCfg := yamux.DefaultConfig()
 	session, err := yamux.Server(conn, yamuxCfg)
 	if err != nil {
-		s.logger.Error("failed to create yamux session", zap.Error(err))
+		fields := append(s.connectionFields(conn), zap.Error(err))
+		s.logger.Error("failed to create yamux session", fields...)
 		return
 	}
 	defer session.Close()
@@ -224,7 +234,8 @@ func (s *Server) handleConn(conn net.Conn) {
 	// Accept control stream
 	controlStream, err := session.AcceptStream()
 	if err != nil {
-		s.logger.Error("failed to accept control stream", zap.Error(err))
+		fields := append(s.connectionFields(conn), zap.Error(err))
+		s.logger.Error("failed to accept control stream", fields...)
 		return
 	}
 
@@ -290,12 +301,79 @@ func (s *Server) loadTLSConfig() error {
 		Certificates: []tls.Certificate{cert},
 		MinVersion:   tls.VersionTLS12,
 	}
+	s.tlsConfig.GetConfigForClient = func(chi *tls.ClientHelloInfo) (*tls.Config, error) {
+		remote := ""
+		if chi.Conn != nil && chi.Conn.RemoteAddr() != nil {
+			remote = chi.Conn.RemoteAddr().String()
+		}
+		s.logger.Debug("tls client hello",
+			zap.String("remote", remote),
+			zap.String("server_name", chi.ServerName),
+			zap.Int("cipher_suite_count", len(chi.CipherSuites)),
+			zap.Strings("supported_versions", tlsVersionNames(chi.SupportedVersions)),
+			zap.Strings("supported_protos", chi.SupportedProtos))
+		return nil, nil
+	}
 
 	s.logger.Info("loaded TLS certificate",
 		zap.String("cert", s.certFile),
 		zap.String("key", s.keyFile))
 
 	return nil
+}
+
+func (s *Server) connectionFields(conn net.Conn) []zap.Field {
+	remote := ""
+	local := ""
+	if conn.RemoteAddr() != nil {
+		remote = conn.RemoteAddr().String()
+	}
+	if conn.LocalAddr() != nil {
+		local = conn.LocalAddr().String()
+	}
+
+	fields := []zap.Field{
+		zap.String("remote", remote),
+		zap.String("local", local),
+	}
+
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok {
+		return fields
+	}
+
+	st := tlsConn.ConnectionState()
+	fields = append(fields,
+		zap.Bool("handshake_complete", st.HandshakeComplete),
+		zap.String("sni", st.ServerName),
+		zap.String("tls_version", tlsVersionName(st.Version)),
+		zap.String("cipher_suite", tls.CipherSuiteName(st.CipherSuite)),
+		zap.Int("peer_cert_count", len(st.PeerCertificates)))
+
+	return fields
+}
+
+func tlsVersionName(v uint16) string {
+	switch v {
+	case tls.VersionTLS13:
+		return "TLS1.3"
+	case tls.VersionTLS12:
+		return "TLS1.2"
+	case tls.VersionTLS11:
+		return "TLS1.1"
+	case tls.VersionTLS10:
+		return "TLS1.0"
+	default:
+		return fmt.Sprintf("0x%04x", v)
+	}
+}
+
+func tlsVersionNames(vs []uint16) []string {
+	out := make([]string, 0, len(vs))
+	for _, v := range vs {
+		out = append(out, tlsVersionName(v))
+	}
+	return out
 }
 
 func (s *Server) watchCerts() {
