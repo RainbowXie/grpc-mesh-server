@@ -179,3 +179,8 @@ help: ## Show this help message
 
 # Default target
 .DEFAULT_GOAL := help
+
+.PHONY: build-meshlib
+build-meshlib: ## Build the c-shared library (libmesh.so + meshlib.h) for embedding
+	CGO_ENABLED=1 go build -buildmode=c-shared -o libmesh.so ./cmd/meshlib
+	@echo "built libmesh.so and libmesh.h"

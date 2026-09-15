@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -153,14 +154,7 @@ type AuthConfig struct {
 //	os.Setenv("SERVER_GRPC_ADDRESS", ":50051")
 //	cfg, err := config.Load("")
 func Load(path string) (*Config, error) {
-	v := viper.New()
-
-	// Set defaults
-	v.SetDefault("server.grpc_address", ":50051")
-	v.SetDefault("server.metrics_address", ":9090")
-	v.SetDefault("listener.address", ":8443")
-	v.SetDefault("logging.level", "info")
-	v.SetDefault("auth.enabled", false)
+	v := newViper()
 
 	if path != "" {
 		v.SetConfigFile(path)
@@ -170,6 +164,42 @@ func Load(path string) (*Config, error) {
 		v.AddConfigPath("./config")
 		v.AddConfigPath(".")
 	}
+
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok && path == "" {
+			// Config file not found but not required
+		} else {
+			return nil, fmt.Errorf("failed to read config: %w", err)
+		}
+	}
+
+	return loadFromViper(v)
+}
+
+// LoadBytes parses a JSON document against the same schema, defaults and
+// validations as Load. It exists for embeddings that receive configuration
+// from a foreign runtime (e.g. the c-shared library border).
+func LoadBytes(data []byte) (*Config, error) {
+	v := newViper()
+	v.SetConfigType("json")
+
+	if err := v.ReadConfig(bytes.NewReader(data)); err != nil {
+		return nil, fmt.Errorf("failed to read config: %w", err)
+	}
+
+	return loadFromViper(v)
+}
+
+// newViper returns a viper instance with defaults and env overrides applied.
+func newViper() *viper.Viper {
+	v := viper.New()
+
+	// Set defaults
+	v.SetDefault("server.grpc_address", ":50051")
+	v.SetDefault("server.metrics_address", ":9090")
+	v.SetDefault("listener.address", ":8443")
+	v.SetDefault("logging.level", "info")
+	v.SetDefault("auth.enabled", false)
 
 	// Environment overrides: viper looks up env keys verbatim, so nested keys
 	// like server.grpc_address must be mapped to SERVER_GRPC_ADDRESS. BindEnv
@@ -189,14 +219,10 @@ func Load(path string) (*Config, error) {
 		_ = v.BindEnv(key)
 	}
 
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok && path == "" {
-			// Config file not found but not required
-		} else {
-			return nil, fmt.Errorf("failed to read config: %w", err)
-		}
-	}
+	return v
+}
 
+func loadFromViper(v *viper.Viper) (*Config, error) {
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)

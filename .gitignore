@@ -36,3 +36,7 @@ coverage.out
 # Go
 go.work
 go.work.sum
+
+# c-shared build artifacts
+libmesh.so
+libmesh.h
