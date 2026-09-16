@@ -24,12 +24,23 @@ func startForTest(h uint64) int  { return int(mesh_server_start(C.uint64_t(h))) 
 func stopForTest(h uint64) int   { return int(mesh_server_stop(C.uint64_t(h))) }
 func freeHandleForTest(h uint64) { mesh_server_free(C.uint64_t(h)) }
 
+// readStringHandle mirrors the C caller pattern: read borrowed data, then
+// release the handle exactly once.
+func readStringHandle(strHandle uint64) (string, bool) {
+	cs := mesh_str_data(C.uint64_t(strHandle))
+	if cs == nil {
+		return "", false
+	}
+	defer mesh_str_release(C.uint64_t(strHandle))
+	return C.GoString(cs), true
+}
+
 func invokeForTest(h uint64, peer, method string, payload []byte, timeoutMs uint32) (string, bool) {
 	var ptr unsafe.Pointer
 	if len(payload) > 0 {
 		ptr = unsafe.Pointer(&payload[0])
 	}
-	out := mesh_invoke(
+	strHandle := mesh_invoke(
 		C.uint64_t(h),
 		C.CString(peer),
 		C.CString(method),
@@ -37,24 +48,26 @@ func invokeForTest(h uint64, peer, method string, payload []byte, timeoutMs uint
 		C.int(len(payload)),
 		C.uint32_t(timeoutMs),
 	)
-	if out == nil {
+	if strHandle == 0 {
 		return "", false
 	}
-	defer mesh_free_string(out)
-	return C.GoString(out), true
+	return readStringHandle(uint64(strHandle))
 }
 
 func listNodesForTest(h uint64) (string, bool) {
-	out := mesh_list_nodes(C.uint64_t(h))
-	if out == nil {
+	strHandle := mesh_list_nodes(C.uint64_t(h))
+	if strHandle == 0 {
 		return "", false
 	}
-	defer mesh_free_string(out)
-	return C.GoString(out), true
+	return readStringHandle(uint64(strHandle))
 }
 
-func doubleFreeForTest(s string) {
-	cs := goCString(s)
-	mesh_free_string(cs)
-	mesh_free_string(cs)
+func registerCStringForTest(s string) uint64 { return registerCString(s) }
+func strDataForTest(strHandle uint64) string {
+	cs := mesh_str_data(C.uint64_t(strHandle))
+	if cs == nil {
+		return ""
+	}
+	return C.GoString(cs)
 }
+func strReleaseForTest(strHandle uint64) { mesh_str_release(C.uint64_t(strHandle)) }

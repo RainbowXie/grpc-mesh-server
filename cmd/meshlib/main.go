@@ -7,8 +7,12 @@
 //   - Handles are opaque uint64 values; 0 is never a valid handle.
 //   - Functions return 0 on success and non-zero on failure; a descriptive
 //     message is available via mesh_last_error on the calling thread.
-//   - Strings returned by mesh_invoke / mesh_list_nodes are heap allocated
-//     and MUST be released with mesh_free_string. Releasing twice is a no-op.
+//   - mesh_invoke / mesh_list_nodes return a string handle (0 on failure).
+//     Read the content with mesh_str_data (borrowed pointer, do not free,
+//     valid until release) and release it with mesh_str_release. Releasing
+//     the same handle twice is a no-op, and identity is a monotonic id, so
+//     allocator address reuse can never make a stale release free a live
+//     string.
 //   - mesh_last_error returns a thread-local pointer owned by the library;
 //     it is valid until the next ABI call on the same thread and must not
 //     be freed.
@@ -63,25 +67,29 @@ var (
 	handles   = map[uint64]*meshServer{}
 )
 
-// liveStrings tracks every heap string the ABI handed out so that
-// mesh_free_string can make double releases a no-op instead of UB.
+// liveStrings maps a monotonic string-handle id to its C allocation.
+// Identity is the id, never the pointer: the allocator may hand a freed
+// address to a new string, and only id-based lookup keeps a stale release
+// from freeing a live string.
 var (
 	stringsMu sync.Mutex
-	live      = map[unsafe.Pointer]bool{}
+	nextStrID uint64
+	liveStrs  = map[uint64]*C.char{}
 )
 
 func setErr(format string, args ...any) {
 	C.mesh_set_err(C.CString(fmt.Sprintf(format, args...)))
 }
 
-// goCString allocates a NUL-terminated copy of s via C malloc and registers
-// it for safe release.
-func goCString(s string) *C.char {
+// registerCString stores s and returns its handle. Handle 0 is never
+// issued, so callers can use it as the failure sentinel.
+func registerCString(s string) uint64 {
 	cs := C.CString(s)
 	stringsMu.Lock()
-	live[unsafe.Pointer(cs)] = true
-	stringsMu.Unlock()
-	return cs
+	defer stringsMu.Unlock()
+	nextStrID++
+	liveStrs[nextStrID] = cs
+	return nextStrID
 }
 
 //export mesh_server_new
@@ -166,18 +174,18 @@ func mesh_server_free(handle C.uint64_t) {
 }
 
 //export mesh_invoke
-func mesh_invoke(handle C.uint64_t, peerID, method *C.char, payload unsafe.Pointer, payloadLen C.int, timeoutMs C.uint32_t) (out *C.char) {
+func mesh_invoke(handle C.uint64_t, peerID, method *C.char, payload unsafe.Pointer, payloadLen C.int, timeoutMs C.uint32_t) (out C.uint64_t) {
 	defer func() {
 		if r := recover(); r != nil {
 			setErr("panic in mesh_invoke: %v", r)
-			out = nil
+			out = 0
 		}
 	}()
 
 	ms, ok := lookup(uint64(handle))
 	if !ok {
 		setErr("invalid handle: %d", uint64(handle))
-		return nil
+		return 0
 	}
 
 	var payloadBytes []byte
@@ -195,30 +203,30 @@ func mesh_invoke(handle C.uint64_t, peerID, method *C.char, payload unsafe.Point
 	resp, err := ms.srv.ReverseGateway().Invoke(context.Background(), registry.PeerID(req.PeerId), req)
 	if err != nil {
 		setErr("invoke failed: %v", err)
-		return nil
+		return 0
 	}
 
 	data, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(resp)
 	if err != nil {
 		setErr("marshal response: %v", err)
-		return nil
+		return 0
 	}
-	return goCString(string(data))
+	return C.uint64_t(registerCString(string(data)))
 }
 
 //export mesh_list_nodes
-func mesh_list_nodes(handle C.uint64_t) (out *C.char) {
+func mesh_list_nodes(handle C.uint64_t) (out C.uint64_t) {
 	defer func() {
 		if r := recover(); r != nil {
 			setErr("panic in mesh_list_nodes: %v", r)
-			out = nil
+			out = 0
 		}
 	}()
 
 	ms, ok := lookup(uint64(handle))
 	if !ok {
 		setErr("invalid handle: %d", uint64(handle))
-		return nil
+		return 0
 	}
 
 	type nodeJSON struct {
@@ -247,27 +255,39 @@ func mesh_list_nodes(handle C.uint64_t) (out *C.char) {
 	data, err := json.Marshal(nodes)
 	if err != nil {
 		setErr("marshal nodes: %v", err)
-		return nil
+		return 0
 	}
-	return goCString(string(data))
+	return C.uint64_t(registerCString(string(data)))
 }
 
-//export mesh_free_string
-func mesh_free_string(cs *C.char) {
+//export mesh_str_data
+func mesh_str_data(strHandle C.uint64_t) (out *C.char) {
+	defer func() {
+		if r := recover(); r != nil {
+			setErr("panic in mesh_str_data: %v", r)
+			out = nil
+		}
+	}()
+
+	stringsMu.Lock()
+	defer stringsMu.Unlock()
+	// Borrowed pointer: valid until mesh_str_release on this handle; NULL
+	// for unknown or already-released handles.
+	return liveStrs[uint64(strHandle)]
+}
+
+//export mesh_str_release
+func mesh_str_release(strHandle C.uint64_t) {
 	defer func() { _ = recover() }()
 
-	if cs == nil {
-		return
-	}
-	p := unsafe.Pointer(cs)
 	stringsMu.Lock()
-	// Only free pointers we handed out; a double release simply misses the
-	// map and becomes a no-op.
-	if live[p] {
-		delete(live, p)
-		C.free(p)
-	}
+	cs, ok := liveStrs[uint64(strHandle)]
+	delete(liveStrs, uint64(strHandle))
 	stringsMu.Unlock()
+	// A second release finds no entry and is a no-op.
+	if ok {
+		C.free(unsafe.Pointer(cs))
+	}
 }
 
 //export mesh_last_error

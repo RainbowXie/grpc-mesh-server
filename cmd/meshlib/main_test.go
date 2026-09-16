@@ -91,8 +91,42 @@ func TestInvokeUnknownPeerReturnsDialFailed(t *testing.T) {
 	}
 }
 
-func TestDoubleFreeIsNoop(t *testing.T) {
-	doubleFreeForTest("hello") // must not crash
+func TestDoubleReleaseIsNoop(t *testing.T) {
+	h := registerCStringForTest("hello")
+	if strDataForTest(h) != "hello" {
+		t.Fatal("str_data must return the stored content")
+	}
+	strReleaseForTest(h)
+	strReleaseForTest(h) // second release must be a no-op
+	if strDataForTest(h) != "" {
+		t.Fatal("released handle must yield NULL")
+	}
+}
+
+// Review round 1 regression: a stale release must never free a live string
+// even when the allocator reuses the freed block's address for the next
+// allocation. Pointer-based identity could not tell the two apart;
+// id-based handles must.
+func TestStringHandleAddressReuseSafety(t *testing.T) {
+	h1 := registerCStringForTest("first")
+	if got := strDataForTest(h1); got != "first" {
+		t.Fatalf("h1 data = %q", got)
+	}
+	strReleaseForTest(h1)
+
+	// Very likely reuses h1's block (same size, just freed).
+	h2 := registerCStringForTest("second")
+
+	// Stale release of h1 after h2 exists: must be a no-op for h2.
+	strReleaseForTest(h1)
+
+	if got := strDataForTest(h2); got != "second" {
+		t.Fatalf("h2 corrupted by stale release of h1: %q", got)
+	}
+	if strDataForTest(h1) != "" {
+		t.Fatal("released handle must yield NULL")
+	}
+	strReleaseForTest(h2)
 }
 
 func TestListNodesEmpty(t *testing.T) {
